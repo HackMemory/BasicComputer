@@ -4,16 +4,12 @@
 
 package ru.ifmo.cs.bcomp.grammar;
 
-import org.antlr.v4.runtime.atn.ATNDeserializer;
-import org.antlr.v4.runtime.VocabularyImpl;
-import org.antlr.v4.runtime.RuntimeMetaData;
-import org.antlr.v4.runtime.atn.LexerATNSimulator;
-import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.ATN;
-import org.antlr.v4.runtime.Vocabulary;
+import org.antlr.v4.runtime.atn.ATNDeserializer;
+import org.antlr.v4.runtime.atn.LexerATNSimulator;
 import org.antlr.v4.runtime.atn.PredictionContextCache;
 import org.antlr.v4.runtime.dfa.DFA;
-import org.antlr.v4.runtime.Lexer;
 
 public class BCompNGLexer extends Lexer
 {

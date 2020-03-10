@@ -4,16 +4,11 @@
 
 package ru.ifmo.cs.bcomp.grammar;
 
-import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
-
-import ru.ifmo.cs.bcomp.grammar.BCompNGLexer;
+import ru.ifmo.cs.bcomp.grammar.BCompNGBaseListener.*;
 import ru.ifmo.cs.bcomp.grammar.BCompNGLexer.*;
-import ru.ifmo.cs.bcomp.grammar.BCompNGListener;
 import ru.ifmo.cs.bcomp.grammar.BCompNGParser;
 import ru.ifmo.cs.bcomp.grammar.BCompNGParser.*;
-import ru.ifmo.cs.bcomp.grammar.BCompNGBaseListener;
-import ru.ifmo.cs.bcomp.grammar.BCompNGBaseListener.*;
 
 public class BCompNGBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements BCompNGVisitor<T>
 {

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 import static ru.ifmo.cs.bcomp.ui.components.DisplayStyles.*;
 
+//боже, не смотри сюда, тут какой-то трэш
 
 public class TraceView extends BCompPanel {
 
@@ -144,7 +145,7 @@ public class TraceView extends BCompPanel {
                     public void setValue(long value) {
                         long addr = cpu.getRegValue(Reg.AR);
 
-                        if (!writelist.contains(addr)) // Saving changed mem addr to print later
+                        if (!writelist.contains(addr))
                             writelist.add(addr);
                     }
                 });
@@ -161,7 +162,7 @@ public class TraceView extends BCompPanel {
                     }
                 });
 
-                cpu.setCPUStopListener(new Runnable() { // Print changed mem
+                cpu.setCPUStopListener(new Runnable() {
                     @Override
                     public void run() {
                         if (!printOnStop)
@@ -174,7 +175,6 @@ public class TraceView extends BCompPanel {
                         for (Long wraddr : writelist) {
                             setTrace(String.format(",%1$34s", "\t") + getMemory(wraddr) + "\n");
                             stringRegsCsv.append(String.format(",%1$34s", ",") + getMemoryCsv(wraddr) + "\n");
-                            //stringBuilderRegsCsv.append(String.format(",%1$34s", ",") + getMemoryCsv(wraddr) + "\n");
                         }
                     }
                 });
@@ -196,6 +196,7 @@ public class TraceView extends BCompPanel {
                 cpu.startContinue();
 
                 cpu.executeContinue();
+                //какой то говнокод, зато работает
                 while ( !Long.toHexString(cpu.getRegValue(Reg.CR)).equals("100") ) {
                     System.out.println(Long.toHexString( cpu.getRegValue(Reg.CR)));
                     cpu.executeContinue();
@@ -260,16 +261,18 @@ public class TraceView extends BCompPanel {
 
 
 
-    }
+        JButton btn3 = new JButton("Нажми на меня...");
+        btn3.setForeground(COLOR_TEXT);
+        btn3.setBackground(COLOR_VALUE);
+        btn3.setFont(FONT_COURIER_PLAIN_12);
+        btn3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(null, "1) Всегда указывайте адрес начала программы\n2) В программе обязательно должен быть HLT, чтобы БЭВМ тупа не завис (мне лень просто делать какие-то проверки)\n3) Вроде все :D");
+            }
+        });
 
-    @Override
-    public void stepStart(){
-
-    }
-
-    @Override
-    public void stepFinish(){
-
+        bottomButtons.add(btn3);
     }
 
     public static void setTrace(String str){
@@ -281,8 +284,6 @@ public class TraceView extends BCompPanel {
             text.setCaretPosition(len);
             text.setCharacterAttributes(aset, false);
             text.replaceSelection(str);
-            //Document doc = text.getDocument();
-            //doc.insertString(doc.getLength(), str, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -295,6 +296,17 @@ public class TraceView extends BCompPanel {
 
     @Override
     public void redrawArrows() {
+    }
 
+    @Override
+    public void panelActivate(){
+    }
+
+    @Override
+    public void stepStart(){
+    }
+
+    @Override
+    public void stepFinish() {
     }
 }

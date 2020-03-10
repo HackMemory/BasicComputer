@@ -268,30 +268,6 @@ public class ComponentManager {
 		input =new InputRegisterView(this,cpu.getRegister(Reg.IR));
 		ioctrls = gui.getIOCtrls();
 
-		/*cpu.setCPUStartListener(new Runnable() {
-			@Override
-			public void run() {
-				if (!printOnStop)
-					return;
-				writelist.clear();
-				savedPointer = cpu.getRegValue(cpu.getClockState() ? Reg.IP : Reg.MP);
-				TraceView.setTrace(TraceView.printRegsTitle());
-			}
-		});
-
-		cpu.setCPUStopListener(new Runnable() { // Print changed mem
-			@Override
-			public void run() {
-				if (!printOnStop)
-					return;
-
-				//printRegs(writelist.isEmpty() ? "" : " " + getMemory(writelist.remove(0)));
-
-				//for (Long wraddr : writelist)
-					//println(String.format("%1$34s", " ") + getMemory(wraddr));
-			}
-		});*/
-
 		setTickStartListenerval = new Runnable() {
 			@Override
 			public void run() {
@@ -514,7 +490,7 @@ public class ComponentManager {
 			File file = jfc.getSelectedFile();
 			for(String line : Files.readAllLines(file.toPath()) ){
 
-				line.trim();
+				line = line.trim();
 				if (line.substring(line.length() - 1).equals("a")){
 					String addr = line.replaceFirst(".$","");
 
