@@ -4,7 +4,6 @@
 
 package ru.ifmo.cs.bcomp.grammar;
 
-import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.ATN;
 import org.antlr.v4.runtime.atn.ATNDeserializer;
 import org.antlr.v4.runtime.atn.LexerATNSimulator;

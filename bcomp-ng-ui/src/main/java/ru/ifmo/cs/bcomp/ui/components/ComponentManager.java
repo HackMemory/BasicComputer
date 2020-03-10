@@ -13,13 +13,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import static ru.ifmo.cs.bcomp.ControlSignal.*;
 import static ru.ifmo.cs.bcomp.ui.components.DisplayStyles.*;
@@ -487,22 +482,25 @@ public class ComponentManager {
 		int returnValue = jfc.showOpenDialog(null);
 		if (returnValue == JFileChooser.APPROVE_OPTION) {
 
-			File file = jfc.getSelectedFile();
-			for(String line : Files.readAllLines(file.toPath()) ){
+			Scanner file = new Scanner(jfc.getSelectedFile());
+			while (file.hasNext()) {
+				String line = file.nextLine().trim();
+				if(!line.isEmpty()) {
+					if (line.substring(line.length() - 1).equals("a")) {
+						String addr = line.replaceFirst(".$", "");
 
-				line = line.trim();
-				if (line.substring(line.length() - 1).equals("a")){
-					String addr = line.replaceFirst(".$","");
-
-					Integer value = Integer.parseInt(addr, 16);
-					cpu.getRegister(Reg.IR).setValue(value);
-					cpu.executeSetAddr();
-				}else{
-					Integer value = Integer.parseInt(line, 16);
-					cpu.getRegister(Reg.IR).setValue(value);
-					cpu.executeWrite();
+						Integer value = Integer.parseInt(addr, 16);
+						cpu.getRegister(Reg.IR).setValue(value);
+						cpu.executeSetAddr();
+					} else {
+						Integer value = Integer.parseInt(line, 16);
+						cpu.getRegister(Reg.IR).setValue(value);
+						cpu.executeWrite();
+					}
 				}
 			}
+
+			file.close();
 		}
 	}
 
