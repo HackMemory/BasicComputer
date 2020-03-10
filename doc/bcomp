@@ -1,0 +1,32 @@
+#!/bin/sh
+# $Id$
+
+MODE=gui
+MP=base
+JAR=bcomp-ng.jar
+
+while getopts gcdnboep: arg
+do
+	case "$arg" in
+	g)	MODE=gui;;
+	c)	MODE=cli;;
+	d)	MODE=decoder;;
+	n)	MODE=nightmare;;
+	b)	MP=base;;
+	o)	MP=optimized;;
+	e)	MP=extended;;
+	p)	JAR="$OPTARG";;
+	*)
+		echo "Usage: bcomp [-g | -c | -d] [-b | -o | -e] [-p path]
+	-g - run in GUI mode (default)
+	-c - run in CLI mode
+	-d - run microprogram decoder
+	-b - use base microprogram (default)
+	-o - use optimized microprogram
+	-e - use extended microprogram
+	-p path - path to bcomp.jar"
+		exit 1
+	esac
+done
+
+java -server -Dmode=$MODE -Dmp=$MP -jar "$JAR"
