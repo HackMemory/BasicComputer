@@ -186,19 +186,19 @@ public enum ControlSignal {
 	IO,
 	/**
 	 * Control signal 35:
-	 * Clear flags for all IO Controllers
+	 *
 	 */
-	CLRF,
+	IRQS,
 	/**
 	 * Control signal 36:
-	 * Disable interrupts
+	 * Reserved
 	 */
-	DINT,
+	RESERVED36,
 	/**
 	 * Control signal 37:
-	 * Enable interrupts
+	 * Reserved
 	 */
-	EINT,
+	RESERVED37,
 	/**
 	 * Control signal 38:
 	 * HALT
@@ -210,22 +210,21 @@ public enum ControlSignal {
 	 */
 	TYPE,
 	/**
-	 * Псевдосигнал: Переключение работа/останов
-	 * @deprecated
-	 */
-	SET_RUN_STATE,
-	/**
 	 * Псевдосигнал: Установка программы
 	 */
 	SET_PROGRAM,
 	/**
-	 * Псевдосигнал (?): Тактовый генератор
+	 * Псевдосигнал: Тактовый генератор
 	 */
 	CLOCK0,
 	/**
-	 * Псевдосигнал (?): Тактовый генератор
+	 * Псевдосигнал: Тактовый генератор
 	 */
 	CLOCK1,
+	/**
+	 * Псевдосигнал: Disable interrupts
+	 */
+	SET_EI,
 	/**
 	 * Псевдосигнал: Запрос прерывания
 	 */

@@ -10,27 +10,23 @@ package ru.ifmo.cs.bcomp;
  */
 public class BasicComp {
 	private final CPU cpu;
-//	private final IOCtrl[] ioctrls;
-//	private final IODevTimer timer;
+	private final IOCtrl[] ioctrls = new IOCtrl[4];
+	private final IODevTimer timer;
 
 	public BasicComp() throws Exception {
 		cpu = new CPU();
 		cpu.startCPU();
 
-/*		CPU2IO cpu2io = cpu.getCPU2IO();
-		ioctrls = new IOCtrl[] {
-			new IOCtrl(0, IOCtrl.Direction.OUT, cpu2io),
-			new IOCtrl(1, IOCtrl.Direction.OUT, cpu2io),
-			new IOCtrl(2, IOCtrl.Direction.IN, cpu2io),
-			new IOCtrl(3, IOCtrl.Direction.INOUT, cpu2io),
-			new IOCtrl(4, IOCtrl.Direction.OUT, cpu2io),
-			new IOCtrl(5, IOCtrl.Direction.OUT, cpu2io),
-			new IOCtrl(6, IOCtrl.Direction.OUT, cpu2io),
-			new IOCtrl(7, IOCtrl.Direction.IN, cpu2io),
-			new IOCtrl(8, IOCtrl.Direction.IN, cpu2io),
-			new IOCtrl(9, IOCtrl.Direction.INOUT, cpu2io),
-		};
-		timer = new IODevTimer(ioctrls[0]);*/
+		cpu.addDestination(ControlSignal.IRQS,
+				(ioctrls[0] = new IOCtrlBasicOutput(0, 0, cpu,
+						(ioctrls[1] = new IOCtrlBasicOutput(2, 1, cpu,
+								(ioctrls[2] = new IOCtrlBasicInput(4, 2, cpu,
+										(ioctrls[3] = new IOCtrlBasicInputOutput(6, 3, cpu)).getIRQSC()
+								)).getIRQSC()
+						)).getIRQSC()
+				)).getIRQSC()
+		);
+		timer = new IODevTimer(ioctrls[0]);
 	}
 
 	public CPU getCPU() {
@@ -58,20 +54,20 @@ public class BasicComp {
 			cpu.tickUnlock();
 		}
 	}
-        
-        public void loadProgram(ProgramBinary prog) throws RuntimeException {
-            if (cpu.isLocked())
-                    throw new RuntimeException("Операция невозможна: выполняется программа");
-            if (!cpu.executeSetAddr(prog.load_address))
-                    throw new RuntimeException("Операция прервана: выполняется программа");
-            for (Integer cmd : prog.binary) {
-                if (!cpu.executeWrite(cmd))
-                        throw new RuntimeException("Операция прервана: выполняется программа");
-            }
-            if (!cpu.executeSetAddr(prog.start_address))
-                    throw new RuntimeException("Операция прервана: выполняется программа");
-        }
-/*
+
+	public void loadProgram(ProgramBinary prog) throws RuntimeException {
+		if (cpu.isLocked())
+			throw new RuntimeException("Операция невозможна: выполняется программа");
+		if (!cpu.executeSetAddr(prog.load_address))
+			throw new RuntimeException("Операция прервана: выполняется программа");
+		for (Integer cmd : prog.binary) {
+			if (!cpu.executeWrite(cmd))
+				throw new RuntimeException("Операция прервана: выполняется программа");
+		}
+		if (!cpu.executeSetAddr(prog.start_address))
+			throw new RuntimeException("Операция прервана: выполняется программа");
+	}
+
 	public IOCtrl[] getIOCtrls() {
 		return ioctrls;
 	}
@@ -84,6 +80,7 @@ public class BasicComp {
 		timer.done();
 	}
 
+/*
 	private void ctrlDestination(ControlSignal cs, DataDestination dest, boolean remove) {
 		int iodev;
 		IOCtrl.ControlSignal iocs;

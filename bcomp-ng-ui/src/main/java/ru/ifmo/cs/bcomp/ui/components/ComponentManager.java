@@ -317,7 +317,7 @@ public class ComponentManager {
 			new SignalListener(regs.get(Reg.CR), WRCR),
 			new SignalListener(regs.get(Reg.IP), WRIP),
 			new SignalListener(regs.get(Reg.AC), WRAC),
-			new SignalListener(regs.get(Reg.PS), RDPS,WRPS,SETC, SETV, STNZ, DINT, EINT, HALT,SET_PROGRAM),
+				new SignalListener(regs.get(Reg.PS), RDPS,WRPS,SETC, SETV, STNZ, SET_EI, HALT,SET_PROGRAM),
            new SignalListener(regs.get(Reg.SP), WRSP),
            new SignalListener(regs.get(Reg.BR),WRBR)
 
@@ -455,7 +455,7 @@ public class ComponentManager {
 
 	public void cmdInvertRunState() {
 		cpu.invertRunState();
-		long state =	cpu.getProgramState(State.RUN);
+		long state = cpu.getProgramState(State.W);
 		rbRanStop.setSelected(state == 1);
 		rbRanStop.setText(buttonProperties[BUTTON_RUN].texts[(int)state]);
 		regs.get(Reg.PS).setValue();

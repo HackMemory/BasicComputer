@@ -3,22 +3,21 @@
  */
 package ru.ifmo.cs.bcomp;
 
+import org.junit.Test;
+import ru.ifmo.cs.components.DataDestination;
+import ru.ifmo.cs.components.Memory;
+import ru.ifmo.cs.components.Register;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import org.junit.Test;
-import java.util.ArrayList;
 import java.util.Iterator;
-import static ru.ifmo.cs.bcomp.Utils.toHex;
-import ru.ifmo.cs.components.DataDestination;
-import ru.ifmo.cs.components.Register;
-import static ru.ifmo.cs.bcomp.ControlSignal.*;
+
+import static org.junit.Assert.*;
+import static ru.ifmo.cs.bcomp.ControlSignal.STOR;
 import static ru.ifmo.cs.bcomp.Reg.*;
 import static ru.ifmo.cs.bcomp.State.*;
-import ru.ifmo.cs.components.Memory;
+import static ru.ifmo.cs.bcomp.Utils.toHex;
 
 /**
  *
@@ -26,7 +25,7 @@ import ru.ifmo.cs.components.Memory;
  */
 public class BasicCompTest {
 	private final Reg[] TEST_REGISTERS = { DR, CR, IP, SP, AC, BR, AR };
-	private final State[] TEST_STATES = { C, V, Z, N, F, EI };
+	private final State[] TEST_STATES = { C, V, Z, N, EI };
 	private final long[] TEST_REG_VALUES = { 0xDEAD, 0x0ADB	};
 	private final long[] TEST_FLAG_VALUES = { 0, 1 };
 	private final Hexadecimal x100 = new Hexadecimal(0x100);
