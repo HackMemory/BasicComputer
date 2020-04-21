@@ -7,6 +7,7 @@ package ru.ifmo.cs.bcomp.ui.components;
 import ru.ifmo.cs.bcomp.*;
 import ru.ifmo.cs.bcomp.ui.GUI;
 import ru.ifmo.cs.components.DataDestination;
+import ru.ifmo.cs.components.Utils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static ru.ifmo.cs.bcomp.ControlSignal.*;
+import static ru.ifmo.cs.bcomp.Reg.*;
 import static ru.ifmo.cs.bcomp.ui.components.DisplayStyles.*;
 
 /**
@@ -260,7 +262,14 @@ public class ComponentManager {
 		this.gui = gui;
 		bcomp = gui.getBasicComp();
 		cpu = gui.getCPU();
-		input =new InputRegisterView(this,cpu.getRegister(Reg.IR));
+		input = new InputRegisterView(this, cpu.getRegister(IR)){
+			@Override
+			protected void setValue(String val) {
+				super.setValue(val);
+				//getRegisterView(IR).setValue(Utils.toBinary(cpu.getRegister(IR).getValue(),(int)input.getRegWidth()));
+				getRegisterView(IR).setValue(String.format("%04X", cpu.getRegister(IR).getValue()));
+			}
+		};
 		ioctrls = gui.getIOCtrls();
 
 		setTickStartListenerval = new Runnable() {
@@ -314,7 +323,7 @@ public class ComponentManager {
 		listeners = new SignalListener[] {
 			new SignalListener(regs.get(Reg.AR), WRAR),
 			new SignalListener(regs.get(Reg.DR), WRDR, LOAD),
-			new SignalListener(regs.get(Reg.CR), WRCR),
+			new SignalListener(regs.get(Reg.CR), WRCR, IRQS),
 			new SignalListener(regs.get(Reg.IP), WRIP),
 			new SignalListener(regs.get(Reg.AC), WRAC),
 				new SignalListener(regs.get(Reg.PS), RDPS,WRPS,SETC, SETV, STNZ, SET_EI, HALT,SET_PROGRAM),

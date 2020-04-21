@@ -4,9 +4,8 @@
 
 package ru.ifmo.cs.bcomp.ui.components;
 
-import ru.ifmo.cs.bcomp.Reg;
-import ru.ifmo.cs.bcomp.Utils;
 import ru.ifmo.cs.components.Register;
+import ru.ifmo.cs.components.Utils;
 
 import java.awt.event.*;
 
@@ -208,12 +207,13 @@ public class InputRegisterView extends RegisterView {
 		if (active) {
 			String hex16Chars = String.format("%04X", reg.getValue());
 			StringBuilder str = new StringBuilder(HTML + hex16Chars + HTML_END);
-			//JOptionPane.showMessageDialog(null, Utils.getBinaryWidth(3 + 1), "", JOptionPane.INFORMATION_MESSAGE);
+
 			int pos = 6 + formattedWidth - Utils.getBinaryWidth(bitno + 1);
 			str.insert(pos + 1, COLOR_END);
 			str.insert(pos, COLOR_ACTIVE_BIT);
 			setValue(str.toString());
-			cmanager.getRegisterView(Reg.IR).setValue(Long.toHexString(reg.getValue()));
+
+			//cmanager.getRegisterView(Reg.IR).setValue(String.format("%04X", reg.getValue()));
 		} else {
 			String hex16Chars = String.format("%04X", reg.getValue());
 			super.setValue(HTML + hex16Chars + HTML_END);

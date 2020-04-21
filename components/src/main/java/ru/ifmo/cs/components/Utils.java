@@ -2,7 +2,7 @@
  * $Id$
  */
 
-package ru.ifmo.cs.bcomp;
+package ru.ifmo.cs.components;
 
 /**
  *
@@ -10,8 +10,8 @@ package ru.ifmo.cs.bcomp;
  */
 public class Utils {
 	private final static char[] digits = {
-		'0', '1', '2', '3', '4', '5', '6', '7',
-		'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+			'0', '1', '2', '3', '4', '5', '6', '7',
+			'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 	};
 
 	private final static String[] flags = { "0", "1" };
@@ -91,9 +91,5 @@ public class Utils {
 
 	public static boolean isHexNumeric(String s) {
 		return isNumeric(s, 16);
-	}
-
-	public static ControlSignal[] cs(ControlSignal ... signals) {
-		return signals;
 	}
 }

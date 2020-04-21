@@ -4,7 +4,7 @@
 
 package ru.ifmo.cs.bcomp.ui.components;
 
-import ru.ifmo.cs.bcomp.Utils;
+import ru.ifmo.cs.components.Utils;
 import ru.ifmo.cs.components.DataDestination;
 import ru.ifmo.cs.components.Register;
 
@@ -49,17 +49,15 @@ public class RegisterView extends BCompComponent implements DataDestination {
 		this.isLeft=isLeft;
 		setBounds(x, y, getValueWidth(regWidth, false)+15);
 		setValue();
-		if (!isLeft){
-		title.setBounds(1,1,25,CELL_HEIGHT+1);
 
-		value.setBounds(27, 1, width-28, CELL_HEIGHT+1);
-			title.setForeground(COLOR_TEXT);
-			value.setForeground(COLOR_TEXT);
-		}
-		else {title.setBounds(width-26,1,25,CELL_HEIGHT+1);
-		value.setBounds(1,1,width-28,CELL_HEIGHT+1);
-			title.setForeground(COLOR_TEXT);
-			value.setForeground(COLOR_TEXT);
+		title.setForeground(COLOR_TEXT);
+		value.setForeground(COLOR_TEXT);
+		if (!isLeft) {
+			title.setBounds(1, 1, REG_TITLE_WIDTH, CELL_HEIGHT + 1);
+			value.setBounds(REG_TITLE_WIDTH, 1, width - REG_TITLE_WIDTH - 1, CELL_HEIGHT + 1);
+		} else {
+			title.setBounds(width - 1 - REG_TITLE_WIDTH, 1, REG_TITLE_WIDTH, CELL_HEIGHT + 1);
+			value.setBounds(1, 1, width - REG_TITLE_WIDTH - 3, CELL_HEIGHT + 1);
 		}
 	}
 

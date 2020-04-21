@@ -17,7 +17,7 @@ import static org.junit.Assert.*;
 import static ru.ifmo.cs.bcomp.ControlSignal.STOR;
 import static ru.ifmo.cs.bcomp.Reg.*;
 import static ru.ifmo.cs.bcomp.State.*;
-import static ru.ifmo.cs.bcomp.Utils.toHex;
+import static ru.ifmo.cs.components.Utils.toHex;
 
 /**
  *

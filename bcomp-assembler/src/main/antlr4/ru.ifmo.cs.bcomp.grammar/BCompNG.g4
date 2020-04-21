@@ -43,6 +43,16 @@ wordArguments
 wordArgument
    : number
    | '$' label
+   | dupArgument
+   | '?'
+   ;
+
+dupArgument
+   : count dup '(' wordArgument ')'
+   ;
+
+count
+   : number
    ;
 
 lbl
@@ -120,18 +130,20 @@ comment
 
 addr: AND | OR | ADD | ADC | SUB | CMP | LOOP | LD | SWAM | JUMP | CALL | ST;
 nonaddr: NOP | HLT | CLA | NOT | CLC | CMC | ROL | ROR | ASL | ASR | SXTB | SWAB |
-         INC | DEC | NEG | POP | POPF | RET | IRET | PUSH | PUSHF | SWAP;
+         INC | DEC | NEG | POP | POPF | RET | IRET | PUSH | PUSHF | SWAP |
+         EI  | DI;
 branch: BEQ | BNE | BMI | BPL | BCS | BCC | BVS | BVC | BLT | BGE | BR;
-io: CLF | TSF | IN | OUT;
+io:  IN | OUT | INT;
 
 sp: SP;
 ip: IP;
 
 org: ORG;
 word: WORD;
+dup: DUP;
 end: END;
 
-fragment A : ('a' | 'A'); 
+fragment A : ('a' | 'A');
 fragment B : ('b' | 'B');
 fragment C : ('c' | 'C');
 fragment D : ('d' | 'D');
@@ -158,7 +170,7 @@ fragment X : ('x' | 'X');
 fragment Y : ('y' | 'Y');
 fragment Z : ('z' | 'Z');
 
-fragment RA : ('а' | 'А'); 
+fragment RA : ('а' | 'А');
 fragment RB : ('б' | 'Б');
 fragment RV : ('в' | 'В');
 fragment RG : ('г' | 'Г');
@@ -201,6 +213,7 @@ fragment P0D : '0' D ;
 ORG: O R G;
 WORD: W O R D;
 END: E N D;
+DUP: ( D U P ) | ( D U P L I C A T E );
 
 /*
 * opcodes
@@ -229,9 +242,9 @@ ROL: ( R O L ) ;
 ROR: ( R O R ) ;
 ASL: ( A S L ) ;
 ASR: ( A S R ) ;
-SXTB: ( S X T B ) ; 
+SXTB: ( S X T B ) ;
 SWAB: ( S W A B ) ;
-INC: ( I N C ) ; 
+INC: ( I N C ) ;
 DEC: ( D E C ) ;
 NEG: ( N E G ) ;
 POP: ( P O P ) ;
@@ -244,7 +257,7 @@ SWAP: ( S W A P ) ;
 
 BEQ: ( B E Q ) | ( B Z S );
 BNE: ( B N E ) | ( B Z C );
-BMI: ( B M I ) | ( B N S ); 
+BMI: ( B M I ) | ( B N S );
 BPL: ( B P L ) | ( B N C );
 BCS: ( B C S ) | ( B L O );
 BCC: ( B C C ) | ( B H I S );
@@ -255,24 +268,28 @@ BGE: ( B G E ) ;
 BR: ( B R ) ;    //syntetic insturction, jump with direct relative addressing mode
 
 
-CLF: ( C L F ) ;
-TSF: ( T S F ) ;
+DI: ( D I ) ;
+EI: ( E I ) ;
 IN: ( I N ) ;
 OUT: ( O U T ) ;
+INT: ( I N T ) ;
 
 SP: ( S P ) ;
 IP: ( I P ) ;
 
 NAME
-   : [a-zA-Zа-яА-Я] [a-zA-Zа-яА-Я0-9."]*
+   : [a-zA-Zа-яА-Я_] [a-zA-Zа-яА-Я_0-9."]*
    ;
 
 DECIMAL
-   : P0D? DECDIGIT+
+   : ( P0D? DECDIGIT+ )
+   | ( '-' P0D? DECDIGIT+ )
+   | ( P0D? '-' DECDIGIT+ )
    ;
 
 HEX
    : HEXDIGIT+ | (P0X HEXDIGIT+ ) | ( HEXDIGIT+ H )
+   | ( '-' HEXDIGIT+ ) | ( '-' P0X HEXDIGIT+ ) | (P0X '-' HEXDIGIT+ ) | ( '-' HEXDIGIT+ H )
    ;
 
 COMMENT

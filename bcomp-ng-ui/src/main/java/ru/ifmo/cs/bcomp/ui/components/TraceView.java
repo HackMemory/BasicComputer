@@ -4,7 +4,7 @@ package ru.ifmo.cs.bcomp.ui.components;
 import ru.ifmo.cs.bcomp.CPU;
 import ru.ifmo.cs.bcomp.ControlSignal;
 import ru.ifmo.cs.bcomp.Reg;
-import ru.ifmo.cs.bcomp.Utils;
+import ru.ifmo.cs.components.Utils;
 import ru.ifmo.cs.bcomp.ui.GUI;
 import ru.ifmo.cs.components.DataDestination;
 
@@ -38,7 +38,7 @@ public class TraceView extends BCompPanel {
         return Utils.toHex(cpu.getRegValue(reg), cpu.getRegWidth(reg));
     }
 
-    private static Reg[] printRegs = new Reg[]{ Reg.IP, Reg.CR, Reg.AR, Reg.DR, Reg.SP, Reg.BR, Reg.AC };
+    private static Reg[] printRegs = new Reg[]{ Reg.IP, Reg.CR, Reg.AR, Reg.DR, Reg.SP, Reg.BR, Reg.AC, Reg.PS };
     public String printRegsTitle() {
         if (!printRegsTitle)
             return "";
@@ -139,6 +139,7 @@ public class TraceView extends BCompPanel {
             public void actionPerformed(ActionEvent e) {
                 printRegsTitle = true;
                 text.setText("");
+                stringRegsCsv.setLength(0);
 
                 cpu.addDestination(ControlSignal.STOR, new DataDestination() {
                     @Override
@@ -173,6 +174,7 @@ public class TraceView extends BCompPanel {
 
                         stringRegsCsv.append(printRegs(    (_addr==0L ? "" : "\t" + getMemory(_addr)),    (_addr==0L ? "" : "," + getMemoryCsv(_addr)))  );
                         for (Long wraddr : writelist) {
+                            System.out.println(wraddr);
                             setTrace(String.format(",%1$34s", "\t") + getMemory(wraddr) + "\n");
                             stringRegsCsv.append(String.format(",%1$34s", ",") + getMemoryCsv(wraddr) + "\n");
                         }
@@ -198,7 +200,6 @@ public class TraceView extends BCompPanel {
                 cpu.executeContinue();
                 //какой то говнокод, зато работает
                 while ( !Long.toHexString(cpu.getRegValue(Reg.CR)).equals("100") ) {
-                    System.out.println(Long.toHexString( cpu.getRegValue(Reg.CR)));
                     cpu.executeContinue();
                 }
             }
@@ -248,7 +249,9 @@ public class TraceView extends BCompPanel {
                             writer.write('\ufeff');
                             writer.write(stringRegsCsv.toString());
                         } finally {
-                            if (writer != null) writer.close();
+                            if (writer != null){
+                                writer.close();
+                            }
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();

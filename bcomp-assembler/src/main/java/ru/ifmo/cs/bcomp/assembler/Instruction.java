@@ -10,7 +10,7 @@ import static ru.ifmo.cs.bcomp.assembler.Instruction.Type.*;
  * @author Dmitry Afanasiev <KOT@MATPOCKuH.Ru>
  */
 public enum Instruction {
-        
+
     //address
     AND(0x2000,ADDR), OR(0x3000 ,ADDR), ADD(0x4000,ADDR), ADC(0x5000,ADDR),
     SUB(0x6000,ADDR), CMP(0x7000,ADDR), LOOP(0x8000,ADDR), LD(0xA000,ADDR),
@@ -28,6 +28,8 @@ public enum Instruction {
     BEQ(0xF000,BRANCH), BNE(0xF100,BRANCH), BMI(0xF200,BRANCH), BPL(0xF300,BRANCH),
     BCS(0xF400,BRANCH), BCC(0xF500,BRANCH), BVS(0xF600,BRANCH), BVC(0xF700,BRANCH),
     BLT(0xF800,BRANCH), BGE(0xF900,BRANCH), BR(0xCE00, BRANCH),
+    //io
+    DI(0x1000,NONADDR),EI(0x1100,NONADDR),IN(0x1200,IO),OUT(0x1300,IO),INT(0x1800,IO),
 
     END(1,Type.NONADDR);
 
@@ -40,7 +42,7 @@ public enum Instruction {
     }
 
     public enum Type {
-            ADDR, NONADDR, BRANCH, IO
+        ADDR, NONADDR, BRANCH, IO
     };
 
     public final int opcode;
@@ -48,7 +50,7 @@ public enum Instruction {
     public Type type;
 
     public String getTypeString() {
-       return type.name();
+        return type.name();
     }
-        
+
 }

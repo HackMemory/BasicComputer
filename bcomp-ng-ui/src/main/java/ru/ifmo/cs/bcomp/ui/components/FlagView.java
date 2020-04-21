@@ -42,7 +42,7 @@ public class FlagView extends JComponent  {
     public void paintComponent(Graphics g) {
         g.setColor(active?COLOR_TITLE:COLOR_VALUE);
         g.fillRect(x, y, wight,height);
-        g.setColor(COLOR_TEXT);
+        g.setColor(active?Color.RED:COLOR_TEXT);
         g.drawRect(x, y,wight-1,height-1);
     }
 

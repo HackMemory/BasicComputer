@@ -7,6 +7,7 @@ import ru.ifmo.cs.bcomp.*;
 import ru.ifmo.cs.bcomp.assembler.AsmNg;
 import ru.ifmo.cs.bcomp.assembler.Program;
 import ru.ifmo.cs.components.DataDestination;
+import ru.ifmo.cs.components.Utils;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -29,8 +30,8 @@ public class CLI {
 	private volatile boolean printMicroTitle = false;
 	private volatile int sleep = 0;
 
-	public CLI() throws Exception {
-		bcomp = new BasicComp();
+	public CLI(BasicComp bcomp) {
+		this.bcomp = bcomp;
 
 		cpu = bcomp.getCPU();
 		cpu.addDestination(ControlSignal.STOR, new DataDestination() {
@@ -86,7 +87,8 @@ public class CLI {
 				try {
 					Thread.sleep(sleep);
 				} catch (InterruptedException e) {
-					/*totally not empty*/ }
+					/*totally not empty*/
+				}
 			}
 		});
 
@@ -138,12 +140,7 @@ public class CLI {
 	}
 
 	private void printIO(int ioaddr) {
-		println(
-				"ВУ" + ioaddr
-						+ ": Флаг = "
-						+ (ioctrls[ioaddr].isReady() ? "1" : "0") +
-						" РДВУ = " + Utils.toHex(((IOCtrlBasic)ioctrls[ioaddr]).getData(), 8)
-		);
+		println("ВУ" + ioaddr + " " + ioctrls[ioaddr]);
 	}
 
 	private boolean checkCmd(String cmd, String check) {
@@ -330,7 +327,7 @@ public class CLI {
 
 					if (i < cmds.length - 1) {
 						value = Integer.parseInt(cmds[++i], 16);
-						((IOCtrlBasic)ioctrls[ioaddr]).setData(value);
+						ioctrls[ioaddr].setData(value);
 					}
 
 					printIO(ioaddr);
@@ -343,7 +340,7 @@ public class CLI {
 					}
 
 					int ioaddr = Integer.parseInt(cmds[++i], 16);
-					((IOCtrlBasic)ioctrls[ioaddr]).setReady();
+					ioctrls[ioaddr].setReady();
 					printIO(ioaddr);
 					continue;
 				}
@@ -366,7 +363,7 @@ public class CLI {
 					printOnStop = false;
 					AsmNg asm = new AsmNg(code);
 					Program pobj = asm.compile();
-					/*if (asm.getErrors().isEmpty()) {
+					if (asm.getErrors().isEmpty()) {
 						ProgramBinary prog = new ProgramBinary(pobj.getBinaryFormat());
 						bcomp.loadProgram(prog);
 						println("Программа начинается с адреса " + Utils.toHex(prog.start_address, 11));
@@ -375,7 +372,7 @@ public class CLI {
 							println(err);
 						}
 						println("Программа содержит ошибки");
-					}*/
+					}
 					printOnStop = true;
 					continue;
 				}

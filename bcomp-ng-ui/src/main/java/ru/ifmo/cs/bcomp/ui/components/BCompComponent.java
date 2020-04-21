@@ -4,7 +4,7 @@
 
 package ru.ifmo.cs.bcomp.ui.components;
 
-import ru.ifmo.cs.bcomp.Utils;
+import ru.ifmo.cs.components.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -73,7 +73,7 @@ public class BCompComponent extends BorderedComponent {
 		return hex ? getValueWidth(width) : getPixelWidth(Utils.getBinaryWidth(width));
 	}
 
-	protected void setTitle(String title) {
+	public void setTitle(String title) {
 		this.title.setText(title);
 	}
 

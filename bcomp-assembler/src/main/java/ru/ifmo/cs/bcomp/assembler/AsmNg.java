@@ -18,6 +18,7 @@ import ru.ifmo.cs.bcomp.grammar.BCompNGParser.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -29,6 +30,7 @@ public class AsmNg {
      * from base_address
      */
     public static final int BASE_ADDRESS = 0x10;
+    private List<String> errors;
 
     public static void main(String[] args) throws Exception {
         AsmNg asmng = new AsmNg(
@@ -72,6 +74,10 @@ public class AsmNg {
 
     public BCompNGParser getParser() {
         return parser;
+    }
+
+    public List<String> getErrors() {
+        return errors;
     }
 
     public Program compile () {

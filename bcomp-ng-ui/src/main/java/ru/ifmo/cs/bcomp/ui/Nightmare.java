@@ -3,42 +3,21 @@
  */
 package ru.ifmo.cs.bcomp.ui;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.GridLayout;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.nio.charset.Charset;
-import java.util.EnumMap;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.WindowConstants;
-import ru.ifmo.cs.bcomp.BasicComp;
-import ru.ifmo.cs.bcomp.CPU;
-import static ru.ifmo.cs.bcomp.ControlSignal.*;
-import ru.ifmo.cs.bcomp.ProgramBinary;
-import ru.ifmo.cs.bcomp.Reg;
-import static ru.ifmo.cs.bcomp.Reg.*;
-import static ru.ifmo.cs.bcomp.State.*;
-import ru.ifmo.cs.bcomp.IOCtrl;
-import ru.ifmo.cs.bcomp.IOCtrlBasic;
-import ru.ifmo.cs.bcomp.SignalListener;
-import ru.ifmo.cs.bcomp.assembler.AsmNg;
-import ru.ifmo.cs.bcomp.assembler.Program;
-//import ru.ifmo.cs.bcomp.ui.io.Keyboard;
-//import ru.ifmo.cs.bcomp.ui.io.Numpad;
-//import ru.ifmo.cs.bcomp.ui.io.SevenSegmentDisplay;
-//import ru.ifmo.cs.bcomp.ui.io.TextPrinter;
-//import ru.ifmo.cs.bcomp.ui.io.Ticker;
+import ru.ifmo.cs.bcomp.*;
+import ru.ifmo.cs.bcomp.ui.io.*;
 import ru.ifmo.cs.components.DataDestination;
 import ru.ifmo.cs.components.Register;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.Collections;
+import java.util.EnumMap;
+
+import static ru.ifmo.cs.bcomp.ControlSignal.*;
+import static ru.ifmo.cs.bcomp.Reg.*;
+import static ru.ifmo.cs.bcomp.State.W;
 
 /**
  *
@@ -62,11 +41,12 @@ public class Nightmare {
 	private BasicIOView io1 = null;
 	private BasicIOView io2 = null;
 	private BasicIOView io3 = null;
-//	private TextPrinter textPrinter = null;
-//	private Ticker ticker = null;
-//	private SevenSegmentDisplay ssd = null;
-//	private Keyboard kbd = null;
-//	private Numpad numpad = null;
+	private AdvIOView io4 = null;
+	private TextPrinter textPrinter = null;
+	private Ticker ticker = null;
+	private SevenSegmentDisplay ssd = null;
+	private Keyboard kbd = null;
+	private Numpad numpad = null;
 //	private GUI pairgui = null;
 
 	private class BitView extends JComponent {
@@ -92,6 +72,7 @@ public class Nightmare {
 	}
 
 	private class RegisterView extends JPanel implements DataDestination {
+		private final JLabel label;
 		private final Register reg;
 		private final BitView[] bits;
 
@@ -99,7 +80,7 @@ public class Nightmare {
 			super(new FlowLayout(FlowLayout.RIGHT, 0, 0));
 
 			this.reg = reg;
-			JLabel label = new JLabel(name);
+			label = new JLabel(name);
 			label.setFont(LABEL_FONT);
 			add(label);
 
@@ -109,6 +90,7 @@ public class Nightmare {
 				add(bits[(int)i] = new BitView(reg, (int)i));
 		}
 
+		@Override
 		public void setValue(long value) {
 			for (int i = 0; i < reg.width; bits[i++].repaint());
 		}
@@ -124,18 +106,20 @@ public class Nightmare {
 		private final JFrame frame;
 		private final RegisterView data;
 		private final RegisterView flag;
+		private final RegisterView irq;
 
 		private BasicIOView(IOCtrl ioctrls[], int number) {
-			this.ioctrl = (IOCtrlBasic)ioctrls[number];
-			data = new RegisterView("DR", ioctrl.getDataRegister());
-			flag = new RegisterView("SR", ioctrl.getStateRegister());
+			ioctrl = (IOCtrlBasic)ioctrls[number];
+			data = new RegisterView("DR", ioctrl.getRegisters()[0]);
+			flag = new RegisterView("SR", ioctrl.getRegisters()[1]);
+			irq = new RegisterView("IRQ", ioctrl.getRegisters()[2]);
 
-// XXX: TODO: FIX ME
-//			ioctrl.addDestination(IOCtrl.ControlSignal.SETFLAG, flag);
-//			if (ioctrl.getDirection() != IOCtrl.Direction.IN)
-//				ioctrl.addDestination(IOCtrl.ControlSignal.OUT, data);
+			ioctrl.addDestination(0, data);
+			ioctrl.addDestination(1, flag);
+			ioctrl.addDestination(2, irq);
 
 			JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+			panel.add(irq);
 			panel.add(flag);
 			panel.add(data);
 
@@ -191,9 +175,7 @@ public class Nightmare {
 			});
 		}
 
-		// XXX: Говнокод
 		private void invertBit(int startbit) {
-			// XXX: Fix me if (ioctrl.getDirection() != IOCtrl.Direction.OUT)
 			data.invertBit(startbit);
 		}
 
@@ -203,30 +185,95 @@ public class Nightmare {
 		}
 	}
 
-	public Nightmare() throws Exception {
-		this.bcomp = new BasicComp();
+	private class AdvIOView {
+		private final String REGNAMES[] = {"DR#0", "DR#1", "State", "Mgmt"};
+		private final IOCtrlAdv ioctrl;
+		private final JFrame frame;
+		private final RegisterView regview[];
+		private final int COUNT;
+		private volatile int active = 0;
+
+		private AdvIOView(IOCtrl ioctrls[], int number) {
+			ioctrl = (IOCtrlAdv)ioctrls[number];
+
+			Register registers[] = ioctrl.getRegisters();
+			regview = new RegisterView[COUNT = registers.length];
+
+			JPanel panel = new JPanel(new GridLayout(COUNT, 1));
+
+			for (int i = 0; i < COUNT; i++) {
+				regview[i] = new RegisterView(REGNAMES[i], registers[i]);
+				regview[i].label.setForeground(i == active ? LED_ON : LED_OFF);
+				panel.add(regview[i]);
+				ioctrl.addDestination(i, regview[i]);
+			}
+
+			frame = new JFrame("Контроллер ВУ" + number);
+			frame.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.EMPTY_SET);
+			frame.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, Collections.EMPTY_SET);
+			frame.add(panel);
+			frame.pack();
+
+			frame.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyPressed(KeyEvent e) {
+					switch (e.getKeyCode()) {
+						case KeyEvent.VK_TAB:
+							regview[active].label.setForeground(LED_OFF);
+							regview[active = (active + (e.isShiftDown() ? COUNT - 1 : 1)) % COUNT].label.setForeground(LED_ON);
+							break;
+
+						case KeyEvent.VK_0:
+							invertBit(0);
+							break;
+
+						case KeyEvent.VK_1:
+							invertBit(1);
+							break;
+
+						case KeyEvent.VK_2:
+							invertBit(2);
+							break;
+
+						case KeyEvent.VK_3:
+							invertBit(3);
+							break;
+
+						case KeyEvent.VK_4:
+							invertBit(4);
+							break;
+
+						case KeyEvent.VK_5:
+							invertBit(5);
+							break;
+
+						case KeyEvent.VK_6:
+							invertBit(6);
+							break;
+
+						case KeyEvent.VK_7:
+							invertBit(7);
+							break;
+					}
+				}
+			});
+		}
+
+		private void invertBit(int startbit) {
+			regview[active].invertBit(startbit);
+			ioctrl.updateStateIRQ();
+		}
+
+		private void activate() {
+			frame.setVisible(true);
+			frame.requestFocus();
+		}
+	}
+
+	public Nightmare(BasicComp bcomp) {
+		this.bcomp = bcomp;
 		this.cpu = bcomp.getCPU();
 		this.ioctrls = bcomp.getIOCtrls();
-
-		try {
-			String code = System.getProperty("code", null);
-			File file = new File(code);
-			FileInputStream fin = null;
-
-			try {
-				fin = new FileInputStream(file);
-				byte content[] = new byte[(int)file.length()];
-				fin.read(content);
-				code = new String(content, Charset.forName("UTF-8"));
-				AsmNg asm = new AsmNg(code);
-				Program pobj = asm.compile();
-				ProgramBinary prog = new ProgramBinary(pobj.getBinaryFormat());
-				bcomp.loadProgram(prog);
-			} finally {
-				if (fin != null)
-					fin.close();
-			}
-		} catch (Exception e) { }
 
 		for (Reg reg : Reg.values())
 			if ((reg != MP) && (reg != MR))
@@ -234,10 +281,10 @@ public class Nightmare {
 
 		listeners = new SignalListener[] {
 				new SignalListener(regs.get(DR), WRDR, LOAD),
-				new SignalListener(regs.get(CR), WRCR),
+				new SignalListener(regs.get(CR), WRCR, IRQS),
 				new SignalListener(regs.get(IP), WRIP),
 				new SignalListener(regs.get(SP), WRSP),
-				new SignalListener(regs.get(AC), WRAC),
+				new SignalListener(regs.get(AC), WRAC, IO),
 				new SignalListener(regs.get(BR), WRBR),
 				new SignalListener(regs.get(PS), WRPS, SETC, SETV, STNZ, SET_EI, HALT, SET_PROGRAM, SET_REQUEST_INTERRUPT),
 				new SignalListener(regs.get(AR), WRAR),
@@ -302,42 +349,48 @@ public class Nightmare {
 								io3 = new BasicIOView(ioctrls, 3);
 							io3.activate();
 							break;
-/*
-					case KeyEvent.VK_4:
-					case KeyEvent.VK_F4:
-						if (textPrinter == null)
-							textPrinter = new TextPrinter(ioctrls[4]);
-						textPrinter.activate();
-						break;
 
-					case KeyEvent.VK_5:
-					case KeyEvent.VK_F5:
-						if (ticker == null)
-							ticker = new Ticker(ioctrls[5]);
-						ticker.activate();
-						break;
+						case KeyEvent.VK_4:
+						case KeyEvent.VK_F4:
+							if (io4 == null)
+								io4 = new AdvIOView(ioctrls, 4);
+							io4.activate();
+							break;
 
-					case KeyEvent.VK_6:
-					case KeyEvent.VK_F6:
-						if (ssd == null)
-							ssd = new SevenSegmentDisplay(ioctrls[6]);
-						ssd.activate();
-						break;
+						case KeyEvent.VK_5:
+						case KeyEvent.VK_F5:
+							if (textPrinter == null)
+								textPrinter = new TextPrinter(ioctrls[5]);
+							textPrinter.activate();
+							break;
 
-					case KeyEvent.VK_7:
-					case KeyEvent.VK_F7:
-						if (kbd == null)
-							kbd = new Keyboard(ioctrls[7]);
-						kbd.activate();
-						break;
+						case KeyEvent.VK_6:
+						case KeyEvent.VK_F6:
+							if (ticker == null)
+								ticker = new Ticker(ioctrls[6]);
+							ticker.activate();
+							break;
 
-					case KeyEvent.VK_8:
-					case KeyEvent.VK_F8:
-						if (numpad == null)
-							numpad = new Numpad(ioctrls[8]);
-						numpad.activate();
-						break;
-*/
+						case KeyEvent.VK_7:
+						case KeyEvent.VK_F7:
+							if (ssd == null)
+								ssd = new SevenSegmentDisplay(ioctrls[7]);
+							ssd.activate();
+							break;
+
+						case KeyEvent.VK_8:
+						case KeyEvent.VK_F8:
+							if (kbd == null)
+								kbd = new Keyboard(ioctrls[8]);
+							kbd.activate();
+							break;
+
+						case KeyEvent.VK_9:
+						case KeyEvent.VK_F9:
+							if (numpad == null)
+								numpad = new Numpad(ioctrls[9]);
+							numpad.activate();
+							break;
 					}
 					return;
 				}

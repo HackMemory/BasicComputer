@@ -11,24 +11,23 @@ import ru.ifmo.cs.components.*;
  * @author Dmitry Afanasiev <KOT@MATPOCKuH.Ru>
  */
 public abstract class IOCtrl {
-    final Decoder chkregister;
+    public final int READYBIT = 6;
+
     final Bus iodata;
     final Bus ioaddr;
     final CtrlBus ioctrl;
-    final Register irqreg = new Register(3);
+    private final Decoder chkregister;
     private final Control irqrqvalve;
 
-    public IOCtrl(long addr, long width, long irq, CPU cpu) {
+    public IOCtrl(long addr, long width, CPU cpu) {
         Register devaddr = new Register(8 - width);
         devaddr.setValue(addr >> width);
 
-        irqreg.setValue(irq);
-
         irqrqvalve = cpu.getIRQReqValve();
 
-        iodata = cpu.getIOBuses().get(CPU.IOBuses.IOData);
-        ioaddr = cpu.getIOBuses().get(CPU.IOBuses.IOAddr);
-        ioctrl = (CtrlBus)cpu.getIOBuses().get(CPU.IOBuses.IOCtrl);
+        iodata = cpu.getIOBuses().get(IOBuses.IOData);
+        ioaddr = cpu.getIOBuses().get(IOBuses.IOAddr);
+        ioctrl = (CtrlBus)cpu.getIOBuses().get(IOBuses.IOCtrl);
         ioctrl.addDestination(
                 // Is set DI?
                 new Not(IOControlSignal.DI.ordinal(), new Valve(ioctrl, 1, IOControlSignal.EI.ordinal(), 0,
@@ -50,15 +49,34 @@ public abstract class IOCtrl {
         );
     }
 
-    public void setReady() {
+    public void updateStateIRQ() {
         irqrqvalve.setValue(1);
     }
 
-    public abstract boolean isReady();
+    public final void checkRegister(DataDestination ... dsts) {
+        chkregister.addDestination(dsts);
+    }
+
     public abstract Register[] getRegisters();
     public abstract DataDestination getIRQSC();
+    public abstract void addDestination(int reg, DataDestination ... dsts);
+    public abstract boolean isReady();
+    public abstract void setReady();
+    public abstract long getData();
+    public abstract void setData(long value);
 
-    void setIRQ(long irq) {
-        irqreg.setValue(irq);
+    /**
+     *
+     * @deprecated
+     */
+    public void addDestination(Register reg, DataDestination ... dsts) {
+        Register registers[] = getRegisters();
+
+        for (int i = 0; i < registers.length; i++)
+            if (registers[i] == reg) {
+                addDestination(i, dsts);
+                return;
+            }
+
     }
 }

@@ -30,10 +30,11 @@ public class GUI extends JApplet {
 	private ActivateblePanel activePanel = null;
 	private final BasicComp bcomp;
 	private final CPU cpu;
+	private boolean isHex = true;
 
 
-	public GUI() throws Exception {
-		this.bcomp = new BasicComp();
+	public GUI(BasicComp bcomp) {
+		this.bcomp = bcomp;
 		this.cpu = bcomp.getCPU();
 	}
 
@@ -44,7 +45,7 @@ public class GUI extends JApplet {
 
 
 		final ActivateblePanel[] panels = {
-			new BasicView(this),
+			new BasicView(this, isHex),
 			new AssemblerView(this),
 			new TraceView(this)
 		};
@@ -128,7 +129,7 @@ public class GUI extends JApplet {
 	}
 
 	public IOCtrl[] getIOCtrls() {
-		return null;
+		return bcomp.getIOCtrls();
 	}
 
 	public ComponentManager getComponentManager() {

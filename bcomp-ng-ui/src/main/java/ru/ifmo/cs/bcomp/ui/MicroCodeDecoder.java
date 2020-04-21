@@ -6,9 +6,11 @@ package ru.ifmo.cs.bcomp.ui;
 
 import ru.ifmo.cs.bcomp.BasicComp;
 import ru.ifmo.cs.bcomp.CPU;
-import static ru.ifmo.cs.bcomp.MCDecoder.getFormattedMC;
 import ru.ifmo.cs.bcomp.MicroCode;
-import static ru.ifmo.cs.bcomp.RunningCycle.*;
+
+import static ru.ifmo.cs.bcomp.MCDecoder.getFormattedMC;
+import static ru.ifmo.cs.bcomp.RunningCycle.INFETCH;
+import static ru.ifmo.cs.bcomp.RunningCycle.RESERVED;
 
 /**
  *
@@ -18,8 +20,8 @@ public class MicroCodeDecoder {
 	private final CPU cpu;
 	private final MicroCode mc;
 
-	public MicroCodeDecoder() throws Exception {
-		cpu = (new BasicComp().getCPU());
+	public MicroCodeDecoder(BasicComp bcomp) {
+		cpu = bcomp.getCPU();
 		mc = cpu.getMicroCodeSource();
 		cpu.stopCPU();
 	}
