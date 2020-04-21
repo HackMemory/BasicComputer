@@ -29,6 +29,8 @@ public class ThirdIO extends IODevice {
         output.setTitle("ВУ");
         JButton buttonReady = new JButton(getRes().getString("ready"));
         buttonReady.setFont(FONT_COURIER_PLAIN_12);
+        buttonReady.setBackground(COLOR_VALUE);
+        buttonReady.setForeground(COLOR_TEXT);
         buttonReady.setFocusable(false);
         GridBagConstraints constraints = new GridBagConstraints() {{
             gridy = 0;

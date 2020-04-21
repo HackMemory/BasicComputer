@@ -45,11 +45,11 @@ public class MCDecoder {
 	public static String getFormattedMC(CPU cpu, long addr) {
 		String[] decoded = MCDecoder.decodeMC(cpu, addr);
 
-		return
-				toHex(addr, 8) + " " +
-						decoded[1] + "\t" +
-						(decoded[0] == null ? "\t\t" : decoded[0] + (decoded[0].length() > 7 ? "\t" : "\t\t")) +
-						(decoded[2] == null ? "No operations" : decoded[2]);
+		return 
+			toHex(addr, 8) + " " +
+			decoded[1] + "\t" + 
+			(decoded[0] == null ? "\t\t" : decoded[0] + (decoded[0].length() > 7 ? "\t" : "\t\t")) +
+			(decoded[2] == null ? "No operations" : decoded[2]);
 	}
 
 	private static String decodeCMC(MicroCode mc, ArrayList<ControlSignal> cs, long checkbit, long addr, long expected) {
@@ -148,7 +148,7 @@ public class MCDecoder {
 	private  static String getAluOutput(ArrayList<ControlSignal> cs) {
 		String left = getComplement(cs, LEFT, COML);
 		String right = getComplement(cs, RIGHT, COMR);
-
+			
 		if (cs.contains(SORA)) {
 			return (left == null ? "0" : left) + " & " + (right == null ? "0" : right);
 		}

@@ -186,7 +186,7 @@ public enum ControlSignal {
 	IO,
 	/**
 	 * Control signal 35:
-	 *
+	 * 
 	 */
 	IRQS,
 	/**

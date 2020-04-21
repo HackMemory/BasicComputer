@@ -371,8 +371,11 @@ public class BasicView extends BCompPanel {
 		for (int i = 1; i < 10; i++) {
 			ioButtons[i-1] = new JToggleButton(cmanager.getRes().getString("DEV-" + i));
 			ioButtons[i-1].setFont(FONT_COURIER_PLAIN_12);
+			ioButtons[i-1].setBackground(COLOR_VALUE);
+			ioButtons[i-1].setForeground(COLOR_TEXT);
 			ioButtons[i-1].setFocusable(false);
 			ioButtons[i-1].addItemListener(actionListeners[i-1]);
+
 			buttonsPanel.add(ioButtons[i-1], constraintsButton);
 			constraintsButton.gridx++;
 		}

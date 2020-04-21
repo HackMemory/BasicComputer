@@ -4,15 +4,13 @@
 
 package ru.ifmo.cs.bcomp;
 
-import ru.ifmo.cs.components.*;
-
 import java.util.EnumMap;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-
+import ru.ifmo.cs.components.*;
 import static ru.ifmo.cs.bcomp.ControlSignal.*;
-import static ru.ifmo.cs.bcomp.RunningCycle.*;
 import static ru.ifmo.cs.bcomp.State.*;
+import static ru.ifmo.cs.bcomp.RunningCycle.*;
 
 /**
  *
@@ -178,14 +176,14 @@ public class CPU {
 
 		// Execute microcommand
 		Control clock1 = new Valve(mr, MR_WIDTH, 0, 0,
-				newValve(dr, DATA_WIDTH, 0, RDDR, right),
-				newValve(cr, DATA_WIDTH, 0, RDCR, right),
-				newValve(ip, DATA_WIDTH, 0, RDIP, right),
-				newValve(sp, DATA_WIDTH, 0, RDSP, right),
-				newValve(ac, DATA_WIDTH, 0, RDAC, left),
-				newValve(br, DATA_WIDTH, 0, RDBR, left),
-				newValve(ps, DATA_WIDTH, 0, RDPS, left),
-				newValve(ir, DATA_WIDTH, 0, RDIR, left)
+			newValve(dr, DATA_WIDTH, 0, RDDR, right),
+			newValve(cr, DATA_WIDTH, 0, RDCR, right),
+			newValve(ip, DATA_WIDTH, 0, RDIP, right),
+			newValve(sp, DATA_WIDTH, 0, RDSP, right),
+			newValve(ac, DATA_WIDTH, 0, RDAC, left),
+			newValve(br, DATA_WIDTH, 0, RDBR, left),
+			newValve(ps, DATA_WIDTH, 0, RDPS, left),
+			newValve(ir, DATA_WIDTH, 0, RDIR, left)
 		);
 		valves.put(CLOCK1, clock1);
 
@@ -213,25 +211,25 @@ public class CPU {
 		// SUM
 		PartWriter writetoH = new PartWriter(swout, 8, 8);
 		clock1.addDestination(new Not(SORA.ordinal(),
-				new DataAdd(lcom, rcom, carry, DATA_WIDTH, 0, aluout),
-				new Valve(ps, 1, 0, 0, new PartWriter(aluout, 1, DATA_WIDTH + 2))));
+			new DataAdd(lcom, rcom, carry, DATA_WIDTH, 0, aluout),
+			new Valve(ps, 1, 0, 0, new PartWriter(aluout, 1, DATA_WIDTH + 2))));
 
 		clock1.addDestination(newValve(aluout, 8, 0, LTOL, swout));
 		clock1.addDestination(newValve(aluout, 8, 0, LTOH,
-				writetoH));
+			writetoH));
 		clock1.addDestination(newValve(aluout, 8, 8, HTOL, swout));
 		clock1.addDestination(newValve(aluout, 10, 8, HTOH,
-				new PartWriter(swout, 10, 8)));
+			new PartWriter(swout, 10, 8)));
 
 		// Control Micro Command
 		Control vr0 = newValve(mr, VR_WIDTH, 16, TYPE,
-				new DataDestination() {
-					@Override
-					public synchronized void setValue(long value) {
-						newmp.setValue((value >> 8) & BasicComponent.calculateMask(8));
-						expected.setValue((value >> 16) & 1L);
-					}
+			new DataDestination() {
+				@Override
+				public synchronized void setValue(long value) {
+					newmp.setValue((value >> 8) & BasicComponent.calculateMask(8));
+					expected.setValue((value >> 16) & 1L);
 				}
+			}
 		);
 		clock1.addDestination(vr0);
 		for (long i = 0; i < 8; i++)
@@ -246,38 +244,38 @@ public class CPU {
 		valves.put(SEXT, c = new Extender(aluout, 8, 7, SEXT.ordinal() - 16, writetoH));
 
 		clock1.addDestination(new Not(TYPE.ordinal(),
-				new Valve(mr, VR_WIDTH, 16, 0,
-						c,
-						new Valve(aluout, 1, 14, SHLT.ordinal() - 16, writeto17),
-						newValveH(aluout, DATA_WIDTH, 0, SHLT, new PartWriter(swout, DATA_WIDTH, 1)),
-						newValveH(aluout, 1, DATA_WIDTH + 2, SHL0, swout),
-						newValveH(aluout, DATA_WIDTH - 1, 1, SHRT, swout),
-						new Valve(aluout, 1, 0, SHRT.ordinal() - 16, new PartWriter(swout, 1, DATA_WIDTH)),
-						new ValveTwo(SHRT.ordinal() - 16, SHRF.ordinal() - 16,
-								shrf = new Valve(aluout, 1, DATA_WIDTH + 2, 0, writeto15, writeto17),
-								new Not(0, new Valve(aluout, 1, DATA_WIDTH - 1, 0, writeto15, writeto17))
-						),
-						newValveH(swout, 1, DATA_WIDTH, SETC, new PartWriter(ps, 1, C.ordinal())),
-						setv = new Xor(swout, 2, DATA_WIDTH, SETV.ordinal() - 16, new PartWriter(ps, 1, V.ordinal())),
-						new DataCheckZero(swout, DATA_WIDTH, STNZ.ordinal() - 16, new PartWriter(ps, 1, Z.ordinal())),
-						newValveH(swout, 1, DATA_WIDTH - 1, STNZ, new PartWriter(ps, 1, N.ordinal())),
-						newValveH(swout, DATA_WIDTH, 0, WRDR, dr),
-						newValveH(swout, DATA_WIDTH, 0, WRCR, cr),
-						newValveH(swout, AR_WIDTH, 0, WRIP, ip),
-						newValveH(swout, AR_WIDTH, 0, WRSP, sp),
-						newValveH(swout, DATA_WIDTH, 0, WRAC, ac),
-						newValveH(swout, DATA_WIDTH, 0, WRBR, br),
-						newValveH(swout, PS_WIDTH, 0, WRPS, new PartWriter(ps, 6, 0), irqrq),
-						newValveH(swout, AR_WIDTH, 0, WRAR, ar),
-						newValveH(mem, DATA_WIDTH, 0, LOAD, dr),
-						newValveH(dr, DATA_WIDTH, 0, STOR, mem),
-						newValveH(Consts.consts[1], 1, 0, IO,
-								new Valve(cr, IO_WIDTH, 0, 0, ioaddr),
-								new Decoder(cr, IO_WIDTH, IOCMD_WIDTH, 0, ioctrl)
-						),
-						newValveH(Consts.consts[1], 1, 0, IRQS),
-						newValveH(Consts.consts[0], 1, 0, HALT, stateProgram)
-				)
+			new Valve(mr, VR_WIDTH, 16, 0,
+				c,
+				new Valve(aluout, 1, 14, SHLT.ordinal() - 16, writeto17),
+				newValveH(aluout, DATA_WIDTH, 0, SHLT, new PartWriter(swout, DATA_WIDTH, 1)),
+				newValveH(aluout, 1, DATA_WIDTH + 2, SHL0, swout),
+				newValveH(aluout, DATA_WIDTH - 1, 1, SHRT, swout),
+				new Valve(aluout, 1, 0, SHRT.ordinal() - 16, new PartWriter(swout, 1, DATA_WIDTH)),
+				new ValveTwo(SHRT.ordinal() - 16, SHRF.ordinal() - 16,
+					shrf = new Valve(aluout, 1, DATA_WIDTH + 2, 0, writeto15, writeto17),
+					new Not(0, new Valve(aluout, 1, DATA_WIDTH - 1, 0, writeto15, writeto17))
+				),
+				newValveH(swout, 1, DATA_WIDTH, SETC, new PartWriter(ps, 1, C.ordinal())),
+				setv = new Xor(swout, 2, DATA_WIDTH, SETV.ordinal() - 16, new PartWriter(ps, 1, V.ordinal())),
+				new DataCheckZero(swout, DATA_WIDTH, STNZ.ordinal() - 16, new PartWriter(ps, 1, Z.ordinal())),
+				newValveH(swout, 1, DATA_WIDTH - 1, STNZ, new PartWriter(ps, 1, N.ordinal())),
+				newValveH(swout, DATA_WIDTH, 0, WRDR, dr),
+				newValveH(swout, DATA_WIDTH, 0, WRCR, cr),
+				newValveH(swout, AR_WIDTH, 0, WRIP, ip),
+				newValveH(swout, AR_WIDTH, 0, WRSP, sp),
+				newValveH(swout, DATA_WIDTH, 0, WRAC, ac),
+				newValveH(swout, DATA_WIDTH, 0, WRBR, br),
+				newValveH(swout, PS_WIDTH, 0, WRPS, new PartWriter(ps, 6, 0), irqrq),
+				newValveH(swout, AR_WIDTH, 0, WRAR, ar),
+				newValveH(mem, DATA_WIDTH, 0, LOAD, dr),
+				newValveH(dr, DATA_WIDTH, 0, STOR, mem),
+				newValveH(Consts.consts[1], 1, 0, IO,
+					new Valve(cr, IO_WIDTH, 0, 0, ioaddr),
+					new Decoder(cr, IO_WIDTH, IOCMD_WIDTH, 0, ioctrl)
+				),
+				newValveH(Consts.consts[1], 1, 0, IRQS),
+				newValveH(Consts.consts[0], 1, 0, HALT, stateProgram)
+			)
 		));
 		valves.put(SHRF, shrf);
 		valves.put(SETV, setv);
@@ -304,20 +302,20 @@ public class CPU {
 		valves.put(SET_EI, ei);
 
 		ioctrl.addDestination(
-				// Output: open AC to IO data
-				new ValveTwo(IOControlSignal.OUT.ordinal(), IOControlSignal.RDY.ordinal(),
-						new Not(0, new Valve(ac, IO_WIDTH, 0, 0, iodata))
-				),
-				// Input: IO data to AC
-				new ValveTwo(IOControlSignal.IN.ordinal(), IOControlSignal.RDY.ordinal(),
-						new Valve(iodata, IO_WIDTH, 0, 0, new PartWriter(ac, IO_WIDTH, 0))
-				),
-				// Disable interrupts
-				new Valve(Consts.consts[0], 1, 0, IOControlSignal.DI.ordinal(), ei),
-				// Enable interrupts
-				new Valve(Consts.consts[1], 1, 0, IOControlSignal.EI.ordinal(), ei),
-				// IRQ SC
-				new Valve(ioaddr, 3, 0, IOControlSignal.IRQ.ordinal(), new PartWriter(cr, 8, 0))
+			// Output: open AC to IO data
+			new ValveTwo(IOControlSignal.OUT.ordinal(), IOControlSignal.RDY.ordinal(),
+				new Not(0, new Valve(ac, IO_WIDTH, 0, 0, iodata))
+			),
+			// Input: IO data to AC
+			new ValveTwo(IOControlSignal.IN.ordinal(), IOControlSignal.RDY.ordinal(),
+				new Valve(iodata, IO_WIDTH, 0, 0, new PartWriter(ac, IO_WIDTH, 0))
+			),
+			// Disable interrupts
+			new Valve(Consts.consts[0], 1, 0, IOControlSignal.DI.ordinal(), ei),
+			// Enable interrupts
+			new Valve(Consts.consts[1], 1, 0, IOControlSignal.EI.ordinal(), ei),
+			// IRQ SC
+			new Valve(ioaddr, 3, 0, IOControlSignal.IRQ.ordinal(), new PartWriter(cr, 8, 0))
 		);
 	}
 

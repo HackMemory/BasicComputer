@@ -33,6 +33,8 @@ public class SecondIO extends IODevice {
         input.setTitle("ВУ");
         JButton button = new JButton(getRes().getString("ready"));
         button.setFont(FONT_COURIER_PLAIN_12);
+        button.setBackground(COLOR_VALUE);
+        button.setForeground(COLOR_TEXT);
         button.setFocusable(false);
         button.addActionListener(new ActionListener() {
             @Override

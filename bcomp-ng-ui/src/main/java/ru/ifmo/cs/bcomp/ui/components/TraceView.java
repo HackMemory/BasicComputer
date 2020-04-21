@@ -25,7 +25,7 @@ import static ru.ifmo.cs.bcomp.ui.components.DisplayStyles.*;
 
 //боже, не смотри сюда, тут какой-то трэш
 
-public class TraceView extends BCompPanel {
+public class TraceView extends BCompPanel implements ActionListener {
 
     private static boolean printRegsTitle = true;
     private GUI gui;
@@ -121,8 +121,9 @@ public class TraceView extends BCompPanel {
 
         text = new JTextPane();
         text.setFont(FONT_COURIER_BOLD_21);
-        text.setBackground(COLOR_BACKGROUND_STYLE);
-        text.setForeground(Color.WHITE);
+        text.setBackground(COLOR_BACKGROUND);
+        text.setForeground(COLOR_TEXT);
+        text.setCaretColor(COLOR_TEXT);
 
         JScrollPane scroll = new JScrollPane(text);
         scroll.setBounds(TEXTAREA_X, TEXTAREA_Y, TEXTAREA_WIDTH, TEXTAREA_HEIGHT);
@@ -299,17 +300,19 @@ public class TraceView extends BCompPanel {
 
     @Override
     public void redrawArrows() {
+        //no arrows no draw
     }
 
     @Override
-    public void panelActivate(){
+    public void panelActivate() {
+        text.requestFocus();
     }
 
     @Override
-    public void stepStart(){
-    }
+    public void panelDeactivate() { }
 
     @Override
-    public void stepFinish() {
+    public void actionPerformed(ActionEvent e) {
+
     }
 }

@@ -36,14 +36,19 @@ public class AssemblerView extends BCompPanel implements ActionListener {
 		this.cmanager = gui.getComponentManager();
 
 		JPanel pane = new JPanel(new BorderLayout());
+		pane.setBackground(COLOR_BACKGROUND);
 
 		text = new JTextArea();
 		text.setFont(FONT_COURIER_BOLD_21);
+		text.setBackground(COLOR_BACKGROUND);
+		text.setForeground(COLOR_TEXT);
+		text.setCaretColor(COLOR_TEXT);
 		JScrollPane scroll = new JScrollPane(text);
 		pane.add(scroll,BorderLayout.CENTER);
 
 		JButton button = new JButton(cmanager.getRes().getString("compile"));
 		button.setForeground(COLOR_TEXT);
+		button.setBackground(COLOR_VALUE);
 		button.setFont(FONT_COURIER_PLAIN_12);
 		button.setFocusable(false);
 		button.addActionListener(this);
@@ -55,7 +60,10 @@ public class AssemblerView extends BCompPanel implements ActionListener {
 		errorarea = new JTextArea();
 		//errorarea.setRows(3);
 		errorarea.setEditable(false);
+		errorarea.setBackground(COLOR_BACKGROUND);
+		errorarea.setForeground(COLOR_TEXT);
 		JScrollPane errscroll = new JScrollPane(errorarea);
+		errscroll.setBackground(COLOR_BACKGROUND);
 		pane.add(errscroll,BorderLayout.SOUTH);
 
 		JSplitPane splitpane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pane, errscroll);
