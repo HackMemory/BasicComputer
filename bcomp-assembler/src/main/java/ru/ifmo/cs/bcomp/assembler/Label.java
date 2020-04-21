@@ -7,7 +7,7 @@ package ru.ifmo.cs.bcomp.assembler;
  */
 
 public class Label {
-    public final static int UNDEFINED = -1; 
+    public final static int UNDEFINED = -1;
 
     public String name;
     public volatile int address = UNDEFINED;
@@ -17,5 +17,5 @@ public class Label {
     public String toString() {
         return "Label{" + "name=" + name + ", addr=" + (address != UNDEFINED ? address :"UNDEF") + '}';
     }
-    
+
 }

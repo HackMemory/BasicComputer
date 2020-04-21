@@ -14,6 +14,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Date;
 
 import static ru.ifmo.cs.bcomp.ui.components.DisplayStyles.*;
 
@@ -21,74 +22,46 @@ import static ru.ifmo.cs.bcomp.ui.components.DisplayStyles.*;
  *
  * @author Dmitry Afanasiev <KOT@MATPOCKuH.Ru>
  */
-public class AssemblerView extends BCompPanel {
+public class AssemblerView extends BCompPanel implements ActionListener {
 	private final GUI gui;
 	private final CPU cpu;
 	private final ComponentManager cmanager;
 	private final JTextArea text;
+	private final JTextArea errorarea;
 
 	public AssemblerView(final GUI gui) {
 		super (gui.getComponentManager(),null,null);
-
 		this.gui = gui;
 		this.cpu = gui.getCPU();
 		this.cmanager = gui.getComponentManager();
 
-		JPanel mainPanel = new JPanel();
-
-		add(mainPanel);
-		mainPanel.setLayout(new BorderLayout());
+		JPanel pane = new JPanel(new BorderLayout());
 
 		text = new JTextArea();
 		text.setFont(FONT_COURIER_BOLD_21);
-		text.setBackground(COLOR_BACKGROUND_STYLE);
-		text.setForeground(Color.WHITE);
-
 		JScrollPane scroll = new JScrollPane(text);
-		scroll.setBounds(TEXTAREA_X, TEXTAREA_Y, TEXTAREA_WIDTH, TEXTAREA_HEIGHT);
-		mainPanel.add(scroll, BorderLayout.CENTER);
+		pane.add(scroll,BorderLayout.CENTER);
 
-		JButton button = new JButton("Компилировать");
+		JButton button = new JButton(cmanager.getRes().getString("compile"));
 		button.setForeground(COLOR_TEXT);
-		button.setBackground(COLOR_VALUE);
 		button.setFont(FONT_COURIER_PLAIN_12);
-		button.setBounds(625, 1, 200, BUTTONS_HEIGHT);
 		button.setFocusable(false);
-		button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (cpu.isLocked()) {
-					showError("Для компиляции остановите выполняющуюся программу");
-					return;
-				}
+		button.addActionListener(this);
+		JPanel buttonpane = new JPanel();
+		//buttonpane.applyComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+		buttonpane.add(button);
+		//button.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+		pane.add(buttonpane,BorderLayout.PAGE_START);
+		errorarea = new JTextArea();
+		//errorarea.setRows(3);
+		errorarea.setEditable(false);
+		JScrollPane errscroll = new JScrollPane(errorarea);
+		pane.add(errscroll,BorderLayout.SOUTH);
 
-				cmanager.saveDelay();
-				boolean clock = cpu.getClockState();
-				cpu.setClockState(true);
-
-				try {
-                                        AsmNg asm = new AsmNg(text.getText());
-                                        Program pobj = asm.compile();
-                                        gui.getBasicComp().loadProgram(new ProgramBinary(pobj.getBinaryFormat()));
-				} catch (Exception ex) {
-					showError(ex.getMessage());
-				}
-
-				cpu.setClockState(clock);
-				cmanager.clearActiveSignals();
-				cmanager.restoreDelay();
-			}
-		});
-		mainPanel.add(button, BorderLayout.SOUTH);
-	}
-
-	@Override
-	public void stepStart() {
-
-	}
-
-	@Override
-	public void stepFinish(){
+		JSplitPane splitpane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pane, errscroll);
+		splitpane.setDividerSize(4);
+		splitpane.setDividerLocation((int)(PANE_HEIGHT*0.8)); // TODO FIX ALL Layouts
+		add(splitpane);
 
 	}
 
@@ -102,15 +75,48 @@ public class AssemblerView extends BCompPanel {
 
 	@Override
 	public String getPanelName() {
-		return "Ассемблер";
+		return cmanager.getRes().getString("assembler");
 	}
 
 	private void showError(String msg) {
-		JOptionPane.showMessageDialog(gui, msg, "Ошибка", JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(gui, msg, cmanager.getRes().getString("error"), JOptionPane.ERROR_MESSAGE);
 	}
 
-    @Override
-    public void redrawArrows() {
-        //no arrows no draw
-    }
+	@Override
+	public void redrawArrows() {
+		//no arrows no draw
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (cpu.isLocked()) {
+			showError(cmanager.getRes().getString("stopRunning"));
+			return;
+		}
+
+		cmanager.saveDelay();
+		boolean clock = cpu.getClockState();
+		cpu.setClockState(true);
+		long starttime = System.currentTimeMillis();
+		AsmNg asm = new AsmNg(text.getText());
+		Program pobj = asm.compile();
+		long finishtime = System.currentTimeMillis();
+		String errors = new String();
+		String st = "Start compilation at "+new Date(starttime)+"\n";
+		String ft = "Finish compilation at "+new Date(finishtime)+"\n";
+		errors = st;
+		for (String err: asm.getErrors()) {
+			errors = errors + err + '\n';
+		}
+		errors = errors + ft;
+		errorarea.setText(errors);
+		if (pobj != null) {
+			gui.getBasicComp().loadProgram(new ProgramBinary(pobj.getBinaryFormat()));
+		}
+
+		cpu.setClockState(clock);
+		cmanager.clearActiveSignals();
+		cmanager.restoreDelay();
+	}
 }
+

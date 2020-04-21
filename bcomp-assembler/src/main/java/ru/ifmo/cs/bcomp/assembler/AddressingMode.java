@@ -14,16 +14,16 @@ public class AddressingMode {
     public volatile int number = MemoryWord.UNDEFINED;
     public volatile String reference = null;
     public AddressingType addressation;
-    
+
     public enum AddressingType {DIRECT_ABSOLUTE, INDIRECT, POST_INCREMENT, PRE_DECREMENT,
-                                DISPLACEMENT_SP, DIRECT_RELATIVE, DIRECT_LOAD};
-        
+        DISPLACEMENT_SP, DIRECT_RELATIVE, DIRECT_LOAD};
+
     @Override
     public String toString() {
         String s = "";
         if(addressation==null) return s;
         switch (addressation) {
-            case DIRECT_ABSOLUTE: 
+            case DIRECT_ABSOLUTE:
                 if (number != MemoryWord.UNDEFINED ) {s += "0d"+number; break;}
                 if (reference != null ) {s = '$'+reference; break;}
                 s="$undef"; break;
@@ -36,13 +36,13 @@ public class AddressingMode {
             case PRE_DECREMENT:
                 if (reference != null ) {s = "-(" + reference + ')'; break;}
                 s="-(undef)"; break;
-            case DISPLACEMENT_SP: 
+            case DISPLACEMENT_SP:
                 if (number != MemoryWord.UNDEFINED ) {s = "&"+number; break;}
                 s="&undef"; break;
             case DIRECT_RELATIVE:
                 if (reference != null ) {s = reference; break;}
                 s="undef"; break;
-            case DIRECT_LOAD: 
+            case DIRECT_LOAD:
                 if (number != MemoryWord.UNDEFINED ) {s = "#"+number; break;}
                 s="#undef"; break;
             default:
@@ -50,5 +50,5 @@ public class AddressingMode {
         }
         return s;
     }
-    
+
 }

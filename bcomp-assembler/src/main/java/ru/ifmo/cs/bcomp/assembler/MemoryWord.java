@@ -25,6 +25,6 @@ public class MemoryWord {
                 "WORD " +
                 (value != UNDEFINED? " 0x"+Integer.toHexString(value): "");
     }
-    
-    
+
+
 }

@@ -19,14 +19,14 @@ public class Program {
     public final static int UNDEFINED = -1;
     public int load_address = UNDEFINED;
     public int start_address = UNDEFINED;
-    
+
     public List<Integer> binary = null;
     public HashMap<String, Label> labels = null;
     public HashMap<Integer, MemoryWord> content = null;
-    
+
     public List<Integer> getBinaryFormat() {
         if (start_address == UNDEFINED || load_address == UNDEFINED ||
-                binary == null || binary.isEmpty()) 
+                binary == null || binary.isEmpty())
             throw new RuntimeException("AsmNG Program.getBinaryFormat: Program data is corrupted");
         //actually we can regenerate programm data here if labels and content
         //are not null but we would not
@@ -35,7 +35,7 @@ public class Program {
         prog.add(0,load_address);
         return prog;
     }
-    
+
     public void loadBinaryFormat(List<Integer> prog) {
         Iterator<Integer> i = prog.iterator();
         if (!i.hasNext()) throw new IndexOutOfBoundsException("AsmNG Program.loadBinaryFormat: Программа пуста: load_address");
@@ -46,15 +46,15 @@ public class Program {
         binary = new LinkedList<Integer>();
         while (i.hasNext()) binary.add(i.next());
     }
-    
+
     public int getLabelAddr (String label) {
-        if (labels == null) 
+        if (labels == null)
             throw new RuntimeException("AsmNG Program.getLabelAddr: Labels are not set up");
         if (!labels.containsKey(label))
             throw new IllegalArgumentException("AsmNG Program.getLabelAddr: Label "+label+" not found");
         return labels.get(label).address;
     }
-    
+
     public String toBinaryRepresentation(int columns) {
         StringBuilder sb = new StringBuilder();
         int col = 8;
@@ -68,11 +68,11 @@ public class Program {
         }
         return sb.toString();
     }
-    
+
     public String toBinaryRepresentation() {
         return toBinaryRepresentation(8);
     }
-    
+
     public String toCompiledWords() {
         if (content == null) return "UnSet";
         StringBuilder sb = new StringBuilder();
