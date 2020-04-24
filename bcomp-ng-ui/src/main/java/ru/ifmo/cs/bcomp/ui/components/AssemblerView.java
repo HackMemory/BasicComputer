@@ -116,7 +116,10 @@ public class AssemblerView extends BCompPanel implements ActionListener {
 		for (String err: asm.getErrors()) {
 			errors = errors + err + '\n';
 		}
+
 		errors = errors + ft;
+		if(asm.getErrors().isEmpty()) errors = errors + "\n" + pobj.toCompiledWords();
+
 		errorarea.setText(errors);
 		if (pobj != null) {
 			gui.getBasicComp().loadProgram(new ProgramBinary(pobj.getBinaryFormat()));

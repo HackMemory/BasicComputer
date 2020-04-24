@@ -4,9 +4,9 @@ package ru.ifmo.cs.bcomp.ui.components;
 import ru.ifmo.cs.bcomp.CPU;
 import ru.ifmo.cs.bcomp.ControlSignal;
 import ru.ifmo.cs.bcomp.Reg;
-import ru.ifmo.cs.components.Utils;
 import ru.ifmo.cs.bcomp.ui.GUI;
 import ru.ifmo.cs.components.DataDestination;
+import ru.ifmo.cs.components.Utils;
 
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
@@ -33,6 +33,14 @@ public class TraceView extends BCompPanel implements ActionListener {
     private final ComponentManager cmanager;
     private static JTextPane text;
     private StringBuilder stringRegsCsv = new StringBuilder();
+
+    private final ArrayList<Long> writelist = new ArrayList<Long>();
+    private volatile long savedPointer;
+    private volatile boolean printOnStop = true;
+    private volatile int sleep = 0;
+    private int sleeptime = 5;
+
+    private boolean isRun = false;
 
     private String getReg(Reg reg) {
         return Utils.toHex(cpu.getRegValue(reg), cpu.getRegWidth(reg));
@@ -89,12 +97,6 @@ public class TraceView extends BCompPanel implements ActionListener {
         return stringBuilderRegsCsv.toString();
     }
 
-    private final ArrayList<Long> writelist = new ArrayList<Long>();
-    private volatile long savedPointer;
-    private volatile boolean printOnStop = true;
-    private volatile int sleep = 0;
-    private int sleeptime = 0;
-
     private String getMemory(long addr) {
         return Utils.toHex(addr, 11) + "\t" + Utils.toHex(cpu.getMemory().getValue(addr), 16);
     }
@@ -111,13 +113,31 @@ public class TraceView extends BCompPanel implements ActionListener {
         this.cmanager = gui.getComponentManager();
 
         JPanel mainPanel = new JPanel();
+        JPanel leftPanel = new JPanel();
         JPanel bottomButtons = new JPanel();
 
         add(mainPanel);
         mainPanel.setLayout(new BorderLayout());
         bottomButtons.setLayout(new FlowLayout(FlowLayout.LEFT));
 
+        GridBagLayout gbl = new GridBagLayout();
+        leftPanel.setLayout(gbl);
+
+        GridBagConstraints c =  new GridBagConstraints();
+        c.anchor = GridBagConstraints.NORTH;
+        c.fill   = GridBagConstraints.BOTH;
+        c.gridheight = 1;
+        c.gridwidth  = GridBagConstraints.REMAINDER;
+        c.gridx = GridBagConstraints.RELATIVE;
+        c.gridy = GridBagConstraints.RELATIVE;
+        c.insets = new Insets(0, 0, 0, 0);
+        c.ipadx = 0;
+        c.ipady = 0;
+        c.weightx = 0.0;
+        c.weighty = 0.0;
+
         mainPanel.add(bottomButtons, BorderLayout.SOUTH);
+        mainPanel.add(leftPanel, BorderLayout.EAST);
 
         text = new JTextPane();
         text.setFont(FONT_COURIER_BOLD_21);
@@ -129,85 +149,129 @@ public class TraceView extends BCompPanel implements ActionListener {
         scroll.setBounds(TEXTAREA_X, TEXTAREA_Y, TEXTAREA_WIDTH, TEXTAREA_HEIGHT);
         mainPanel.add(scroll, BorderLayout.CENTER);
 
+
+
+
+        //left
+        JTextField sleepTb = new JTextField(String.valueOf(sleeptime));
+        c.insets = new Insets(15, 0, 0, 0);
+        gbl.setConstraints(sleepTb, c);
+        leftPanel.add(sleepTb);
+
+        JButton sleepBtn = new JButton("Задать задержку");
+        sleepBtn.setForeground(COLOR_TEXT);
+        sleepBtn.setBackground(COLOR_VALUE);
+        sleepBtn.setFont(FONT_COURIER_PLAIN_12);
+        sleepBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sleep = Integer.parseInt(sleepTb.getText());
+                setTrace("Задержка установлена на " + sleep + "\n");
+            }
+        });
+        c.insets = new Insets(5, 0, 20, 0);
+        gbl.setConstraints(sleepBtn, c);
+        leftPanel.add(sleepBtn);
+
+
         JButton button = new JButton("Выполнить трассировку");
         button.setForeground(COLOR_TEXT);
         button.setBackground(COLOR_VALUE);
         button.setFont(FONT_COURIER_PLAIN_12);
         button.setBounds(625, 1, 200, BUTTONS_HEIGHT);
         button.setFocusable(false);
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                printRegsTitle = true;
-                text.setText("");
-                stringRegsCsv.setLength(0);
 
-                cpu.addDestination(ControlSignal.STOR, new DataDestination() {
-                    @Override
-                    public void setValue(long value) {
-                        long addr = cpu.getRegValue(Reg.AR);
+        Thread cpuRun = new Thread(() -> {
+            cpu.startStart();
+            cpu.startContinue();
 
-                        if (!writelist.contains(addr))
-                            writelist.add(addr);
-                    }
-                });
-
-
-                cpu.setCPUStartListener(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!printOnStop)
-                            return;
-                        writelist.clear();
-                        savedPointer = cpu.getRegValue(cpu.getClockState() ? Reg.IP : Reg.MP);
-                        stringRegsCsv.append(printRegsTitle());
-                    }
-                });
-
-                cpu.setCPUStopListener(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!printOnStop)
-                            return;
-
-                        Long _addr = 0L;
-                        if(!writelist.isEmpty()) _addr = writelist.remove(0);
-
-                        stringRegsCsv.append(printRegs(    (_addr==0L ? "" : "\t" + getMemory(_addr)),    (_addr==0L ? "" : "," + getMemoryCsv(_addr)))  );
-                        for (Long wraddr : writelist) {
-                            System.out.println(wraddr);
-                            setTrace(String.format(",%1$34s", "\t") + getMemory(wraddr) + "\n");
-                            stringRegsCsv.append(String.format(",%1$34s", ",") + getMemoryCsv(wraddr) + "\n");
-                        }
-                    }
-                });
-
-                cpu.setTickFinishListener(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (sleep <= 0)
-                            return;
-
-                        try {
-                            Thread.sleep(sleep);
-                        } catch (InterruptedException e) { /*totally not empty*/ }
-                    }
-                });
-
-                sleep = sleeptime;
-                cpu.startStart();
-                cpu.startContinue();
-
-                cpu.executeContinue();
-                //какой то говнокод, зато работает
-                while ( !Long.toHexString(cpu.getRegValue(Reg.CR)).equals("100") ) {
+            cpu.executeContinue();
+            while (true) {
+                if (!Long.toHexString(cpu.getRegValue(Reg.CR)).equals("100") && isRun)
                     cpu.executeContinue();
+                else {
+                    isRun = false;
+                    button.setText("Выполнить трассировку");
                 }
             }
         });
-        mainPanel.add(button, BorderLayout.EAST);
 
-        final JTextField textField = new JTextField("", 10);
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!isRun) {
+                    printRegsTitle = true;
+                    isRun = true;
+                    text.setText("");
+                    stringRegsCsv.setLength(0);
+                    button.setText("Остановить");
+
+
+                    cpu.addDestination(ControlSignal.STOR, new DataDestination() {
+                        @Override
+                        public void setValue(long value) {
+                            long addr = cpu.getRegValue(Reg.AR);
+
+                            if (!writelist.contains(addr))
+                                writelist.add(addr);
+                        }
+                    });
+
+                    cpu.setCPUStartListener(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!printOnStop)
+                                return;
+                            writelist.clear();
+                            savedPointer = cpu.getRegValue(cpu.getClockState() ? Reg.IP : Reg.MP);
+                            stringRegsCsv.append(printRegsTitle());
+                        }
+                    });
+
+                    cpu.setCPUStopListener(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!printOnStop)
+                                return;
+
+                            Long _addr = 0L;
+                            if (!writelist.isEmpty()) _addr = writelist.remove(0);
+
+                            stringRegsCsv.append(printRegs((_addr == 0L ? "" : "\t" + getMemory(_addr)), (_addr == 0L ? "" : "," + getMemoryCsv(_addr))));
+                            for (Long wraddr : writelist) {
+                                System.out.println(wraddr);
+                                setTrace(String.format(",%1$34s", "\t") + getMemory(wraddr) + "\n");
+                                stringRegsCsv.append(String.format(",%1$34s", ",") + getMemoryCsv(wraddr) + "\n");
+                            }
+                        }
+                    });
+
+                    cpu.setTickFinishListener(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (sleep <= 0)
+                                return;
+
+                            try {
+                                Thread.sleep(sleep);
+                            } catch (InterruptedException e) { /*totally not empty*/ }
+                        }
+                    });
+
+
+                    sleep = sleeptime;
+                    cpuRun.start();
+                } else {
+                    button.setText("Выполнить трассировку");
+                    isRun = false;
+                }
+            }
+        });
+        c.weighty = 1.0;
+        gbl.setConstraints(button, c);
+        leftPanel.add(button);
+
+        JTextField textField = new JTextField("", 10);
         bottomButtons.add(textField);
 
         JButton btn1 = new JButton("Задать адрес началы программы");
@@ -306,10 +370,14 @@ public class TraceView extends BCompPanel implements ActionListener {
     @Override
     public void panelActivate() {
         text.requestFocus();
+
     }
 
     @Override
-    public void panelDeactivate() { }
+    public void panelDeactivate() {
+        if(!isRun)
+            sleep = 0;
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
