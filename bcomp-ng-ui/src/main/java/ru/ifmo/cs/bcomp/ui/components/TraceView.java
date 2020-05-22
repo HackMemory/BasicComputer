@@ -37,10 +37,11 @@ public class TraceView extends BCompPanel implements ActionListener {
     private final ArrayList<Long> writelist = new ArrayList<Long>();
     private volatile long savedPointer;
     private volatile boolean printOnStop = true;
-    private volatile int sleep = 0;
+    private volatile int sleep = 5;
     private int sleeptime = 5;
 
     private boolean isRun = false;
+    private boolean isContinue = false;
 
     private String getReg(Reg reg) {
         return Utils.toHex(cpu.getRegValue(reg), cpu.getRegWidth(reg));
@@ -153,12 +154,12 @@ public class TraceView extends BCompPanel implements ActionListener {
 
 
         //left
-        JTextField sleepTb = new JTextField(String.valueOf(sleeptime));
+        JTextField sleepTb = new JTextField(String.valueOf(sleep));
         c.insets = new Insets(15, 0, 0, 0);
         gbl.setConstraints(sleepTb, c);
         leftPanel.add(sleepTb);
 
-        JButton sleepBtn = new JButton("Задать задержку");
+        JButton sleepBtn = new JButton("Задать задержку (мс)");
         sleepBtn.setForeground(COLOR_TEXT);
         sleepBtn.setBackground(COLOR_VALUE);
         sleepBtn.setFont(FONT_COURIER_PLAIN_12);
@@ -181,30 +182,35 @@ public class TraceView extends BCompPanel implements ActionListener {
         button.setBounds(625, 1, 200, BUTTONS_HEIGHT);
         button.setFocusable(false);
 
-        Thread cpuRun = new Thread(() -> {
-            cpu.startStart();
-            cpu.startContinue();
-
-            cpu.executeContinue();
-            while (true) {
-                if (!Long.toHexString(cpu.getRegValue(Reg.CR)).equals("100") && isRun)
-                    cpu.executeContinue();
-                else {
-                    isRun = false;
-                    button.setText("Выполнить трассировку");
-                }
-            }
-        });
+//        Thread cpuRun = new Thread(() -> {
+//            cpu.startStart();
+//            cpu.startContinue();
+//
+//            cpu.executeContinue();
+//            while (true) {
+//                if (!Long.toHexString(cpu.getRegValue(Reg.CR)).equals("100") && isRun)
+//                    cpu.executeContinue();
+//                else {
+//                    isRun = false;
+//                    button.setText("Выполнить трассировку");
+//                    System.out.println(currentThread().getName() + " is stopping Server thread");
+//                    break;
+//                }
+//            }
+//        });
 
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(!isRun) {
-                    printRegsTitle = true;
                     isRun = true;
-                    text.setText("");
-                    stringRegsCsv.setLength(0);
-                    button.setText("Остановить");
+                    button.setText("Приостоновить");
+
+                    if(!isContinue) {
+                        printRegsTitle = true;
+                        text.setText("");
+                        stringRegsCsv.setLength(0);
+                    }else isContinue = false;
 
 
                     cpu.addDestination(ControlSignal.STOR, new DataDestination() {
@@ -259,11 +265,27 @@ public class TraceView extends BCompPanel implements ActionListener {
                     });
 
 
-                    sleep = sleeptime;
-                    cpuRun.start();
+                    //sleep = sleeptime;
+                    new Thread(() -> {
+                        cpu.startStart();
+                        cpu.startContinue();
+
+                        cpu.executeContinue();
+                        while (true) {
+                            if (!Long.toHexString(cpu.getRegValue(Reg.CR)).equals("100") && isRun)
+                                cpu.executeContinue();
+                            else {
+                                isRun = false;
+                                button.setText("Выполнить трассировку");
+                                break;
+                            }
+                        }
+                    }).start();
+
                 } else {
                     button.setText("Выполнить трассировку");
                     isRun = false;
+                    isContinue = true;
                 }
             }
         });

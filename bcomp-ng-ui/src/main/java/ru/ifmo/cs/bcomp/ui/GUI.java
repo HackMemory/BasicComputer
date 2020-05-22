@@ -15,8 +15,6 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 
 import static ru.ifmo.cs.bcomp.ui.components.DisplayStyles.PANE_SIZE;
 
@@ -72,15 +70,6 @@ public class GUI extends JApplet {
 			}
 		});
 
-		tabs.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusGained(FocusEvent e) {
-				super.focusGained(e);
-				for (ActivateblePanel panel : panels) {
-					panel.redrawArrows();
-				}
-			}
-		});
 
 		tabs.addComponentListener(new ComponentAdapter() {
 			@Override
@@ -108,6 +97,8 @@ public class GUI extends JApplet {
 	}
 
 	public void gui() throws Exception {
+		bcomp.startTimer();
+
 		JFrame frame = new JFrame("БЭВМ");
 
 			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

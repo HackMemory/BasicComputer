@@ -23,21 +23,21 @@ public class IOCtrlBasic extends IOCtrl {
 
 	private final Register dr = new Register(8);
 	private final Register state = new Register(1);
-	private final Register irqreg = new Register(3);
+	private final Register irqreg = new Register(4);
 	private final Register[] registers = {dr, state, irqreg};
 	private final Control writeToRegister[] = new Control[registers.length];
 	private final DataDestination irqsc;
 
-	public IOCtrlBasic(long addr, long irq, CPU cpu, TYPE type, DataDestination ... chainctrl) {
+	public IOCtrlBasic(long addr, CPU cpu, TYPE type, DataDestination ... chainctrl) {
 		super(addr, 1, cpu);
-		cpu.addIRQReqInput(state);
 
-		irqreg.setValue(irq);
+		And reqirq = new And(state, 0, irqreg, 3);
+		cpu.addIRQReqInput(reqirq);
 
-		irqsc = new Valve(state, 1, 0, 0,
-			new Valve(irqreg, 3, 0, 0, ioaddr),
-			new Valve(Consts.consts[1], 1, 0, 0, new PartWriter(ioctrl, 1, IOControlSignal.IRQ.ordinal())),
-			new Not(0, chainctrl)
+		irqsc = new Valve(reqirq, 1, 0, 0,
+				new Valve(irqreg, 3, 0, 0, ioaddr),
+				new Valve(Consts.consts[1], 1, 0, 0, new PartWriter(ioctrl, 1, IOControlSignal.IRQ.ordinal())),
+				new Not(0, chainctrl)
 		);
 
 		Valve rdy = new Valve(Consts.consts[1], 1, 0, 0, new PartWriter(ioctrl, 1, IOControlSignal.RDY.ordinal()));
@@ -45,30 +45,30 @@ public class IOCtrlBasic extends IOCtrl {
 		Valve clearFlag = new Valve(Consts.consts[0], 1, 0, 0, writeToRegister[STATE]);
 		Valve r0;
 		checkRegister(
-			// Register 0
-			r0 = new Valve(ioctrl, 8, 0, 0),
-			// Register 1
-			new Valve(ioctrl, 8, 0, 1,
-				// Input - state into iodata 6th bit
-				new Valve(Consts.consts[1], 1, 0, IOControlSignal.IN.ordinal(),
-					new Valve(state, 1, 0, 0, new PartWriter(iodata, 1, READYBIT)),
-					rdy
-				),
-				// Output - set IRQ
-				new Valve(Consts.consts[1], 1, 0, IOControlSignal.OUT.ordinal(),
-					writeToRegister[IRQ] = new Valve(iodata, irqreg.width, 0, 0, irqreg),
-					rdy
+				// Register 0
+				r0 = new Valve(ioctrl, 8, 0, 0),
+				// Register 1
+				new Valve(ioctrl, 8, 0, 1,
+						// Input - state into iodata 6th bit
+						new Valve(Consts.consts[1], 1, 0, IOControlSignal.IN.ordinal(),
+								new Valve(state, 1, 0, 0, new PartWriter(iodata, 1, READYBIT)),
+								rdy
+						),
+						// Output - set IRQ
+						new Valve(Consts.consts[1], 1, 0, IOControlSignal.OUT.ordinal(),
+								writeToRegister[IRQ] = new Valve(iodata, irqreg.width, 0, 0, irqreg, cpu.getIRQReqValve()),
+								rdy
+						)
 				)
-			)
 		);
 
 		if (type == TYPE.INPUT || type == TYPE.INPUTOUTPUT)
 			r0.addDestination(
-				new Valve(Consts.consts[1], 1, 0, IOControlSignal.IN.ordinal(),
-					new Valve(dr, 8, 0, 0, iodata),
-					clearFlag,
-					rdy
-				)
+					new Valve(Consts.consts[1], 1, 0, IOControlSignal.IN.ordinal(),
+							new Valve(dr, 8, 0, 0, iodata),
+							clearFlag,
+							rdy
+					)
 			);
 
 		// Preventing NPE in dumb UI
@@ -76,11 +76,11 @@ public class IOCtrlBasic extends IOCtrl {
 		// Output to DR
 		if (type == TYPE.OUTPUT || type == TYPE.INPUTOUTPUT)
 			r0.addDestination(
-				new Valve(Consts.consts[1], 1, 0, IOControlSignal.OUT.ordinal(),
-					writeToRegister[DR],
-					clearFlag,
-					rdy
-				)
+					new Valve(Consts.consts[1], 1, 0, IOControlSignal.OUT.ordinal(),
+							writeToRegister[DR],
+							clearFlag,
+							rdy
+					)
 			);
 	}
 
@@ -122,8 +122,8 @@ public class IOCtrlBasic extends IOCtrl {
 	@Override
 	public String toString() {
 		return
-			"IRQ = " + irqreg +
-			" State = " + state +
-			" Data = " + dr;
+				"IRQ = " + irqreg +
+						" State = " + state +
+						" Data = " + dr;
 	}
 }

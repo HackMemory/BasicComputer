@@ -4,6 +4,10 @@
 
 package ru.ifmo.cs.bcomp.ui.components;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.Theme;
+import org.fife.ui.rtextarea.RTextScrollPane;
 import ru.ifmo.cs.bcomp.CPU;
 import ru.ifmo.cs.bcomp.ProgramBinary;
 import ru.ifmo.cs.bcomp.assembler.AsmNg;
@@ -14,6 +18,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.Date;
 
 import static ru.ifmo.cs.bcomp.ui.components.DisplayStyles.*;
@@ -26,8 +31,10 @@ public class AssemblerView extends BCompPanel implements ActionListener {
 	private final GUI gui;
 	private final CPU cpu;
 	private final ComponentManager cmanager;
-	private final JTextArea text;
+	private final RSyntaxTextArea  text;
 	private final JTextArea errorarea;
+
+
 
 	public AssemblerView(final GUI gui) {
 		super (gui.getComponentManager(),null,null);
@@ -38,13 +45,20 @@ public class AssemblerView extends BCompPanel implements ActionListener {
 		JPanel pane = new JPanel(new BorderLayout());
 		pane.setBackground(COLOR_BACKGROUND);
 
-		text = new JTextArea();
-		text.setFont(FONT_COURIER_BOLD_21);
+		text = new RSyntaxTextArea();
+		text.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86);
+		text.setCodeFoldingEnabled(true);
 		text.setBackground(COLOR_BACKGROUND);
 		text.setForeground(COLOR_TEXT);
-		text.setCaretColor(COLOR_TEXT);
-		JScrollPane scroll = new JScrollPane(text);
+		RTextScrollPane  scroll = new RTextScrollPane(text);
 		pane.add(scroll,BorderLayout.CENTER);
+		Theme theme = null;
+		try {
+			theme = Theme.load(DisplayStyles.class.getClassLoader().getResourceAsStream("dark.xml"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		theme.apply(text);
 
 		JButton button = new JButton(cmanager.getRes().getString("compile"));
 		button.setForeground(COLOR_TEXT);
@@ -128,6 +142,11 @@ public class AssemblerView extends BCompPanel implements ActionListener {
 		cpu.setClockState(clock);
 		cmanager.clearActiveSignals();
 		cmanager.restoreDelay();
+	}
+
+	@Override
+	public void paintComponent(Graphics g) {
+
 	}
 }
 
