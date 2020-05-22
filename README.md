@@ -1,5 +1,5 @@
 # BasicComputer
-![БЭВМ](https://i.imgur.com/t7ODypc.png)
+![БЭВМ](https://i.imgur.com/NspoKvE.png)
 
 ### Загрузка программы
 Загрузка программы позволяет быстро загружать ваши программы из .txt файла.
