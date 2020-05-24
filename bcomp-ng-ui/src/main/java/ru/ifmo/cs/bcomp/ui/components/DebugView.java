@@ -156,12 +156,10 @@ public class DebugView extends BCompPanel implements ActionListener {
         addWatch.setEnabled(false);
         addWatch.setFocusable(false);   // Magic: this line makes the button work every time
         addWatch.addActionListener(actionEvent -> {
-            System.out.println(DebugView.this.watchAddress);
             DebugView.this.watches.add(DebugView.this.watchAddress);
             DebugView.this.watchesComponent = DebugView.this.renderWatchesComponent();
             DebugView.this.removeAll();
             DebugView.this.add(DebugView.this.renderMainComponent());
-            System.out.println(DebugView.this.watches);
         });
 
         JButton removeWatch = new JButton("-");
