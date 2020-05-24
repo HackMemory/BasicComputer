@@ -1,14 +1,17 @@
 package ru.ifmo.cs.bcomp.ui.io;
+
 import ru.ifmo.cs.bcomp.IOCtrl;
 import ru.ifmo.cs.bcomp.ui.components.ComponentManager;
-import ru.ifmo.cs.bcomp.ui.components.InputRegisterView;
+import ru.ifmo.cs.bcomp.ui.components.InputRegisterViewByte;
+
 import javax.swing.*;
 import java.awt.*;
-import static ru.ifmo.cs.bcomp.ui.components.DisplayStyles.*;
+
+import static ru.ifmo.cs.bcomp.ui.components.DisplayStyles.COLOR_BACKGROUND;
 
 public class SecondIO extends IODevice {
     private ComponentManager componentManager;
-    private InputRegisterView input;
+    private InputRegisterViewByte input;
 
     public SecondIO(IOCtrl ioCtrl, ComponentManager componentManager) {
         super(ioCtrl, "input");
@@ -20,7 +23,7 @@ public class SecondIO extends IODevice {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setPreferredSize(new Dimension(500, 150));
         panel.setBackground(COLOR_BACKGROUND);
-        input = new InputRegisterView(componentManager, ioctrl.getRegisters()[0]);
+        input = new InputRegisterViewByte(componentManager, ioctrl.getRegisters()[0]);
         input.setProperties(0, 0, false, false);
         input.setPreferredSize(input.getSize());
         input.setMinimumSize(input.getSize());

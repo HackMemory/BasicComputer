@@ -398,7 +398,7 @@ public class TraceView extends BCompPanel implements ActionListener {
     @Override
     public void panelDeactivate() {
         if(!isRun)
-            sleep = 0;
+            sleep = 1;
     }
 
     @Override
