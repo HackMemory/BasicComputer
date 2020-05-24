@@ -45,7 +45,8 @@ public class GUI extends JApplet {
 		final ActivateblePanel[] panels = {
 			new BasicView(this, isHex),
 			new AssemblerView(this),
-			new TraceView(this)
+			new TraceView(this),
+            new DebugView(this)
 		};
 
 		tabs = new JTabbedPane(){
